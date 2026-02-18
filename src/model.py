@@ -4,14 +4,14 @@ import torch
 class SkinCancerModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.katman =nn.Sequential(
+        self.layer =nn.Sequential(
         nn.Flatten(),
         nn.Linear(150528,224),
         nn.ReLU(),
         nn.Linear(224,7)
     )
     def forward(self, x):
-       x = self.katman(x)
+       x = self.layer(x)
        return x
     
 num_classes = 7
