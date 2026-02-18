@@ -99,6 +99,8 @@ def main():
         print(f"🎉 TEST SONUCU | Ortalama Hata: {ortalama_hata:.4f} | Başarı Oranı: %{yuzdelik_basari:.2f}")
 
     
+    torch.save(model.state_dict(), "models/dermatolog_v3_1.pth")
+    print("✅ Model ağırlıkları 'models/dermatolog_v3_1.pth' olarak kaydedildi!")
     matris_cizdir(gercek_etiketler, modelin_tahminleri, baslik="Cepteki Dermatolog V3.1 - Prodüksiyon Testi")
 
 
