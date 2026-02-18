@@ -84,23 +84,27 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-## Kullanım
+## 🚀 Projeyi Çalıştırma
+
+Artık modüler bir yapıya sahip olduğumuz için eğitimi terminal üzerinden doğrudan başlatabilirsiniz:
 
 ```bash
-from src.model import SkinCancerModel
-import torch
-
-model = SkinCancerModel()
-model.load_state_dict(torch.load("models/cepteki_dermatolog_linear_v1.pth"))
-model.eval()
+# Eğitimi ve testi başlatmak için (v3.1 Mimarisi)
+python src/train.py
 ```
 
-### Notebook üzerinden model eğitimi ve testleri yapılabilir.  
-## 🚀 Geliştirme
+## 🛠️ Modeli Kod İçerisinde Kullanma (Usage)  
+ **Eğitilmiş modeli başka bir Python dosyasında kullanmak isterseniz:**
+```bash
+ import torch
+from src.model import SkinCancerModelV2
 
-- **Daha büyük ve dengeli veri setleri ile eğitim** 
-- **Veri augmentasyonu ekleme**  
-- **Farklı mimariler deneme (ResNet, EfficientNet)**    
+# 1. Modeli başlat
+model = SkinCancerModelV2()
 
+# 2. En güncel ağırlıkları yükle (Eğitim sonrası kaydedilen dosya)
+# model.load_state_dict(torch.load("models/dermatolog_v3_1.pth"))
 
-### Geliştirici: Ferhat Akar - Bilgisayar Mühendisliği Öğrencisi @OMÜ
+model.eval()
+print("Model başarıyla yüklendi ve teste hazır!")
+```
