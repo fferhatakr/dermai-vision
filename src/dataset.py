@@ -2,7 +2,7 @@ import torch
 import torchvision
 from torchvision import transforms
 
-def veri_yukleyicileri_getir(veri_yolu, batch_size=32):
+def get_data_loaders(data_path, batch_size=32):
     
     train_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -18,8 +18,8 @@ def veri_yukleyicileri_getir(veri_yolu, batch_size=32):
     ])
 
    
-    full_dataset_train = torchvision.datasets.ImageFolder(veri_yolu, transform=train_transforms)
-    full_dataset_val = torchvision.datasets.ImageFolder(veri_yolu, transform=val_transforms)
+    full_dataset_train = torchvision.datasets.ImageFolder(data_path, transform=train_transforms)
+    full_dataset_val = torchvision.datasets.ImageFolder(data_path, transform=val_transforms)
 
     
     total_data = len(full_dataset_train)
@@ -45,8 +45,8 @@ def veri_yukleyicileri_getir(veri_yolu, batch_size=32):
     )
 
     
-    print(f"Toplam Veri: {total_data}")
-    print(f"Eğitim Seti: {len(train_set)} resim")
-    print(f"Test Seti: {len(val_set)} resim")
+    print(f"Total Data: {total_data}")
+    print(f"Train Set: {len(train_set)} image")
+    print(f"Test Set: {len(val_set)} image")
     
     return train_loader, val_loader

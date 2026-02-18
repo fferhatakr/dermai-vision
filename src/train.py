@@ -4,48 +4,48 @@ import torch.optim as optim
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
 
-# Kendi yazdığımız dosyaları (modülleri) içeri alıyoruz!
-from dataset import veri_yukleyicileri_getir
+
+from dataset import get_data_loaders
 from model import SkinCancerModelV2
-from utils import matris_cizdir
+from utils import matrix_draw
 
 def main():
     
-    EPOCH_SAYISI = 15
+    EPOCH_NUMBER = 15
     LEARNING_RATE = 0.0001
     BATCH_SIZE = 32
-    VERI_YOLU = "Data/train"  
+    DATA_PATH = "Data/train"  
 
     
-    print("📦 Veriler fabrikadan yükleniyor...")
-    train_loader, val_loader = veri_yukleyicileri_getir(VERI_YOLU, BATCH_SIZE)
+    print("📦 Data is loading from the factory...")
+    train_loader, val_loader = get_data_loaders(DATA_PATH, BATCH_SIZE)
 
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"🖥️ Kullanılan VIP Oda: {device}")
+    print(f"🖥️ VIP Room Used: {device}")
 
     
     model = SkinCancerModelV2().to(device)
 
     
-    print("⚖️ Ceza puanları hesaplanıyor...")
+    print("⚖️ Penalty points are being calculated...")
     train_labels = [label for _, label in train_loader.dataset] 
-    hesaplanan_agirliklar = compute_class_weight(
+    calculated_weights = compute_class_weight(
         class_weight="balanced",
         classes=np.unique(train_labels),
         y=train_labels
     )
-    weight_tensor = torch.FloatTensor(hesaplanan_agirliklar).to(device)
+    weight_tensor = torch.FloatTensor(calculated_weights).to(device)
     
     
     criterion = nn.CrossEntropyLoss(weight=weight_tensor)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
    
-    print("🔥 Motorlar Ateşleniyor! Eğitim Başladı...")
+    print("🔥 Engines are running! Training has begun...")
     
-    model.train() # Modeli eğitim moduna al
-    for epoch in range(EPOCH_SAYISI):
+    model.train() 
+    for epoch in range(EPOCH_NUMBER):
         total_loss = 0
         total_accuary = 0
         
@@ -53,28 +53,28 @@ def main():
             image, label = image.to(device), label.to(device)
             
             predict = model(image)
-            hata = criterion(predict, label)
+            loss = criterion(predict, label)
 
             optimizer.zero_grad()
-            hata.backward()
+            loss.backward()
             optimizer.step()
 
-            total_loss += hata.item()
-            tahmin_edilenler = torch.argmax(predict, dim=1)
-            paket_dogrusu = (tahmin_edilenler == label).sum().item()
-            total_accuary += paket_dogrusu
+            total_loss += loss.item()
+            predictions = torch.argmax(predict, dim=1)
+            batch_correct = (predictions == label).sum().item()
+            total_accuary += batch_correct
 
-        ortalama_hata = total_loss / len(train_loader)
-        yuzdelik_basari = (total_accuary / len(train_loader.dataset)) * 100
+        mean_loss = total_loss / len(train_loader)
+        percentage_of_success = (total_accuary / len(train_loader.dataset)) * 100
 
-        print(f"Epoch {epoch+1}/{EPOCH_SAYISI} tamamlandı. Ortalama Hata: {ortalama_hata:.4f}, Yüzdelik Başari: %{yuzdelik_basari:.2f}")
+        print(f"Epoch {epoch+1}/{EPOCH_NUMBER} completed. Mean Loss: {mean_loss:.4f}, Percentage of Success: %{percentage_of_success:.2f}")
 
     
-    print("🧪 Eğitim bitti, test aşamasına geçiliyor...")
+    print("🧪 Training is complete, moving on to the testing phase...")
     
     model.eval() 
-    gercek_etiketler = []
-    modelin_tahminleri = []
+    actual_tags = []
+    model_predictions  = []
     
     with torch.no_grad():
         total_loss = 0
@@ -83,25 +83,25 @@ def main():
         for image, label in val_loader:
             image, label = image.to(device), label.to(device)
             predict = model(image)
-            hata = criterion(predict, label)
+            loss = criterion(predict, label)
 
-            total_loss += hata.item()
-            tahmin_edilenler = torch.argmax(predict, dim=1)
-            paket_dogrusu = (tahmin_edilenler == label).sum().item()
-            total_accuary += paket_dogrusu
+            total_loss += loss.item()
+            predictions = torch.argmax(predict, dim=1)
+            batch_correct = (predictions == label).sum().item()
+            total_accuary += batch_correct
 
-            modelin_tahminleri.extend(tahmin_edilenler.cpu().numpy())
-            gercek_etiketler.extend(label.cpu().numpy())
+            model_predictions .extend(predictions.cpu().numpy())
+            actual_tags.extend(label.cpu().numpy())
 
-        ortalama_hata = total_loss / len(val_loader)
-        yuzdelik_basari = (total_accuary / len(val_loader.dataset)) * 100
+        mean_loss = total_loss / len(val_loader)
+        percentage_of_success = (total_accuary / len(val_loader.dataset)) * 100
 
-        print(f"🎉 TEST SONUCU | Ortalama Hata: {ortalama_hata:.4f} | Başarı Oranı: %{yuzdelik_basari:.2f}")
+        print(f"🎉 TEST RESULT | Mean Loss: {mean_loss:.4f} | Success Rate: %{percentage_of_success:.2f}")
 
     
     torch.save(model.state_dict(), "models/dermatolog_v3_1.pth")
-    print("✅ Model ağırlıkları 'models/dermatolog_v3_1.pth' olarak kaydedildi!")
-    matris_cizdir(gercek_etiketler, modelin_tahminleri, baslik="Cepteki Dermatolog V3.1 - Prodüksiyon Testi")
+    print("✅ Model weights 'models/dermatolog_v3_1.pth' olarak kaydedildi!")
+    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V3.1 - Production Test")
 
 
 if __name__ == "__main__":
