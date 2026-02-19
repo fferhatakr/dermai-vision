@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
-
+from torchvision import models
 
 from dataset import get_data_loaders
-from model import SkinCancerModelV2
+from model import SkinCancerResNet
 from utils import matrix_draw
 
 def main():
@@ -25,7 +25,7 @@ def main():
     print(f"🖥️ VIP Room Used: {device}")
 
     
-    model = SkinCancerModelV2().to(device)
+    model = SkinCancerResNet().to(device)
 
     
     print("⚖️ Penalty points are being calculated...")
@@ -39,7 +39,7 @@ def main():
     
     
     criterion = nn.CrossEntropyLoss(weight=weight_tensor)
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE)
 
    
     print("🔥 Engines are running! Training has begun...")
@@ -99,9 +99,9 @@ def main():
         print(f"🎉 TEST RESULT | Mean Loss: {mean_loss:.4f} | Success Rate: %{percentage_of_success:.2f}")
 
     
-    torch.save(model.state_dict(), "models/dermatolog_v3_1.pth")
-    print("✅ Model weights 'models/dermatolog_v3_1.pth' olarak kaydedildi!")
-    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V3.1 - Production Test")
+    torch.save(model.state_dict(), "models/dermatolog_v4.0.pth")
+    print("✅ Model weights 'models/dermatolog_v4.0pth' olarak kaydedildi!")
+    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V4.0 - Production Test")
 
 
 if __name__ == "__main__":
