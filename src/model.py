@@ -81,7 +81,7 @@ class SkinCancerResNet(nn.Module):
         
 
         for param in self.resnet18_model.parameters():
-            param.requires_grad = False
+            param.requires_grad = True
 
         original_fc_layer = self.resnet18_model.fc
         num_features = original_fc_layer.in_features
@@ -92,3 +92,5 @@ class SkinCancerResNet(nn.Module):
     def forward(self, x):
         return self.resnet18_model(x)
     
+
+
