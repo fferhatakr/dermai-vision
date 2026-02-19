@@ -1,27 +1,23 @@
-# 🩺 Skin Cancer Detection - Dermatologist in Your Pocket (v3.1 - Enhanced Version)
+# 🩺 Skin Cancer Detection - Dermatologist in Your Pocket (v4.2 - Mobile Optimization)
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
 
-This project is a deep learning-based skin cancer classification assistant developed using PyTorch. The project covers an engineering journey that starts from flat-layer models (Linear) and extends to **CNN (Convolutional Neural Networks)** architecture, **Data Augmentation** techniques, and **Class Weights** integration for imbalanced datasets.
+This project is a deep learning-based skin cancer classification assistant developed using PyTorch. The project covers an engineering journey that starts from flat-layer models (Linear), extends to custom CNN architectures, and currently utilizes **Transfer Learning (ResNet18 & MobileNetV3)** for mobile-optimized, high-accuracy predictions.
 
 ## 🚀 Model Evolution and Performance Table
 
-The project was developed step by step, with each version improving the model's real-world data adaptation (Generalization).
+The project was developed step by step, with each version improving the model's real-world data adaptation and deployment readiness.
 
 | Version | Architecture | Technique | Test Accuracy | Average Loss | Key Improvement |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **v1** | Linear (MLP) | Baseline | 68.83% | 0.9014 | Basic skeleton established. |
-| **v2** | CNN | 3-Layer Conv | 69.25% | 0.7658 | (Internal Test) Switched to CNN but overfitting was observed. |
-| **v3** | CNN | Data Augmentation | 70.50% | 0.7950 | Overfitting broken, overall accuracy increased. |
-| **v3.1** | CNN | **Class Weights** | **49.58%** | **1.1857** | **Justice System (Miracle):** While overall accuracy appears to have dropped, the diagnostic blindness for rare diseases (Class 3 and Class 6) that were previously never detected (scoring 0) has been completely eliminated! |
+| **v3.1** | Custom CNN | Class Weights | 49.58% | 1.1857 | Justice System (Miracle): Overfitting broken, diagnostic blindness for rare diseases eliminated. |
+| **v4.0** | **ResNet18** | **Full Retraining** | **78.75%** | **0.7465** | **Transfer Learning Revolution:** Integrated pre-trained ImageNet weights, massive jump in understanding skin lesion features. |
+| **v4.2** | **MobileNetV3-Small** | **Mobile Optimization** | **73.67%** | **0.8120** | **On-Device Ready:** Swapped heavy ResNet for an ultra-lightweight mobile architecture. Minimal accuracy drop for massive battery/performance gain on mobile devices. |
 
-> **Engineering Note (v3.1):** When working with imbalanced datasets in medical AI projects, "Accuracy" (Overall Success) is a misleading metric. In v3.1, the model's "Majority Class (Class 5)" memorization was penalized and broken using Class Weights, forcing the system to search for rare/risky diseases. As a result, Accuracy dropped to the 49% range, but the model's **life-saving potential (catching rare cases)** has peaked. For more detailed analysis, the Confusion Matrix outputs can be examined.
-
-## 📊 Advanced Analysis: Confusion Matrix
-
-A Confusion Matrix was used to analyze which disease classes the model struggles with and which ones it specializes in. With version v3.1, the system has gained the ability to detect risky and rare diseases.
+> **Engineering Note (v4.2):** Hitting ~74% accuracy with a lightweight model like MobileNetV3-Small on a highly imbalanced, 7-class medical dataset is a massive optimization milestone. The model is now perfectly sized to be converted into TorchScript for native Android (Kotlin) deployment without draining device resources.
 
 ## 📂 File Structure
 
@@ -29,17 +25,19 @@ A Confusion Matrix was used to analyze which disease classes the model struggles
 AI_DET_PROJECT/
 ├─ Data/
 ├─ models/
-│  ├─ cepteki_dermatolog_linear_v1.pth
-│  └─ dermatolog_v2_agirliklar.pth
+│  ├─ dermatolog_v1.0.pth
+│  ├─ dermatolog_v2.0.pth
+│  ├─ dermatolog_v3_1.pth
+│  ├─ dermatolog_v4.0.pth
+│  └─ dermatolog_v4.2.pth
 ├─ notebooks/
-│  ├─ v1_dermatolog.ipynb (v1 Work)
-│  ├─ v2_dermatolog.ipynb (Augmentation Experiments)
-│  └─ v3_dermatolog.ipynb (Class Weights Analysis)
+│  ├─v1_dermatolog.pynb
+│  ├─v2__dermatolog.pynb
+│  └─v3__dermatolog.pynb
 ├─ src/
-│  ├─ __init__.py
-│  ├─ dataset.py
-│  ├─ model.py
-│  ├─ train.py
+│  ├─ dataset.py (Data Augmentation & Normalization)
+│  ├─ model.py (Transfer Learning Architectures)
+│  ├─ train.py (Dynamic LR & Full Retraining logic)
 │  └─ utils.py
 ├─ requirements.txt
 └─ README.md
@@ -47,19 +45,21 @@ AI_DET_PROJECT/
 
 ## 🛠️ Technologies and Techniques Used
 
-- **Architecture: 3-Layer CNN (Conv2d, ReLU, MaxPool2d)**
-- **Regularization: Dropout (0.5)**
-- **Data Augmentation: RandomHorizontalFlip, RandomRotation (20°), ColorJitter**
-- **Imbalanced Data Solution: Class Weights (sklearn.utils.class_weight)**  
-- **Optimization: Adam Optimizer (LR: 0.0001)**
-- **Loss Function: CrossEntropyLoss**
+- **Architectures: Custom CNNs, ResNet18, MobileNetV3**
+- **Transfer Learning: Fine-tuning pre-trained ImageNet weights (requires_grad=True, low learning rate)**  
+- **Data Pipeline: RandomHorizontalFlip, RandomRotation, ColorJitter, ImageNet Normalization.** 
+- **Imbalanced Data Solution: Class Weights (sklearn.utils.class_weight).** 
+- **Optimization: Adam Optimizer (Filtered parameters).**  
 
 ## 🎯 Roadmap
 * **[x] v2: Migration to CNN architecture.**
 * **[x] v2.1: Improving model reliability with Data Augmentation.**
 * **[x] v3.1: Solving the imbalanced data problem with Class Weights.**
-* **[ ] v4: Maximizing accuracy with Transfer Learning (ResNet, EfficientNet).**  
-* **[ ] v5: Mobile Deployment (Android integration with PyTorch Mobile).**
+* **[x] v4.0: Maximizing accuracy with Transfer Learning (ResNet18).**
+* **[x] v4.2: Mobile optimization with MobileNetV3-Small.**
+* **[ ] v4.5: Scale up to MobileNetV3-Large to hit 80%+ accuracy. * [ ] v5.0: Mobile Deployment (TorchScript conversion & Android Kotlin integration).**
+* **[ ] v6.0: Multimodal NLP Integration (Symptom analysis chatbot).**
+
 
 ## ⚙️ Installation
 
@@ -89,7 +89,7 @@ pip install -r requirements.txt
 Since we now have a modular structure, you can start training directly from the terminal:
 
 ```bash
-# To start training and testing (v3.1 Architecture)
+# To start training with the latest MobileNet architecture
 python src/train.py
 ```
 

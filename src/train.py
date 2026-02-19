@@ -6,12 +6,12 @@ from sklearn.utils.class_weight import compute_class_weight
 from torchvision import models
 
 from dataset import get_data_loaders
-from model import SkinCancerResNet
+from model import SkinCancerMobileNet
 from utils import matrix_draw
 
 def main():
     
-    EPOCH_NUMBER = 15
+    EPOCH_NUMBER = 40
     LEARNING_RATE = 1e-5
     BATCH_SIZE = 32
     DATA_PATH = "Data/train"  
@@ -25,7 +25,7 @@ def main():
     print(f"🖥️ VIP Room Used: {device}")
 
     
-    model = SkinCancerResNet().to(device)
+    model = SkinCancerMobileNet().to(device)
 
     
     print("⚖️ Penalty points are being calculated...")

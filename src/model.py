@@ -94,3 +94,19 @@ class SkinCancerResNet(nn.Module):
     
 
 
+class SkinCancerMobileNet(nn.Module): 
+    def __init__(self, num_classes=7):  
+        super().__init__() 
+        self.mobilenet_model = models.mobilenet_v3_small(weights='IMAGENET1K_V1')
+
+        for param in self.mobilenet_model.parameters():
+            param.requires_grad = True 
+
+        original_fc_layer = self.mobilenet_model.classifier[-1]
+        num_features = self.mobilenet_model.classifier[-1].in_features
+        num_classes = 7 
+        new_fc_layer = nn.Linear(in_features=num_features, out_features=num_classes) 
+        self.mobilenet_model.classifier[-1] = new_fc_layer 
+
+    def forward(self, x): 
+        return self.mobilenet_model(x) 
