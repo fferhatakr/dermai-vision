@@ -1,5 +1,10 @@
 import torch.nn as nn
 import torch
+import torchvision.models as models
+import numpy
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 class SkinCancerModel(nn.Module):
     def __init__(self):
@@ -66,3 +71,24 @@ class SkinCancerModelV2(nn.Module):
         return x
 
 
+
+
+class SkinCancerResNet(nn.Module):
+    def __init__(self, num_classes=7):
+        super().__init__()
+        
+        self.resnet18_model = models.resnet18(weights='IMAGENET1K_V1')
+        
+
+        for param in self.resnet18_model.parameters():
+            param.requires_grad = False
+
+        original_fc_layer = self.resnet18_model.fc
+        num_features = original_fc_layer.in_features
+        num_classes = 7
+        new_fc_layer = nn.Linear(in_features=num_features, out_features=num_classes)
+        self.resnet18_model.fc = new_fc_layer
+
+    def forward(self, x):
+        return self.resnet18_model(x)
+    
