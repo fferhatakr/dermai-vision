@@ -12,7 +12,7 @@ from utils import matrix_draw
 def main():
     
     EPOCH_NUMBER = 15
-    LEARNING_RATE = 0.0001
+    LEARNING_RATE = 1e-5
     BATCH_SIZE = 32
     DATA_PATH = "Data/train"  
 
@@ -99,9 +99,9 @@ def main():
         print(f"🎉 TEST RESULT | Mean Loss: {mean_loss:.4f} | Success Rate: %{percentage_of_success:.2f}")
 
     
-    torch.save(model.state_dict(), "models/dermatolog_v4.0.pth")
-    print("✅ Model weights 'models/dermatolog_v4.0pth' olarak kaydedildi!")
-    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V4.0 - Production Test")
+    torch.save(model.state_dict(), "models/dermatolog_v4.2.pth")
+    print("✅ Model weights 'models/dermatolog_v4.2pth' olarak kaydedildi!")
+    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V4.2 - Production Test")
 
 
 if __name__ == "__main__":
