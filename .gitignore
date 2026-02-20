@@ -13,3 +13,7 @@ venv/
 env/
 
 notebooks/v3_dermatolog.ipynb
+
+models/nlp_v1/
+*.safetensors
+*.pth
