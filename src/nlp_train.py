@@ -12,9 +12,8 @@ from sklearn.model_selection import train_test_split
 
 
 
-
-
-EPOCH = 5
+model = build_nlp_model()
+EPOCH = 15
 
 df = pd.read_csv('Data/symptoms.csv')
 tokenizer = DistilBertTokenizer.from_pretrained('dbmdz/distilbert-base-turkish-cased')
@@ -51,9 +50,16 @@ val_loader = DataLoader(
 )
 
 
-model = build_nlp_model()
-optimizer = AdamW(model.parameters(),lr=2e-5)
 
+for param in model.distilbert.parameters():
+
+    param.requires_grad = False
+
+for param in model.classifier.parameters():
+
+    param.requires_grad = True
+
+optimizer = AdamW(model.parameters(),lr=2e-5)
 
 for i in range(EPOCH):
     model.train()
@@ -85,7 +91,7 @@ for i in range(EPOCH):
     print(f"Epoch {i+1}/{EPOCH}")
     print(f"Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Accuracy: %{accuracy*100:.2f}")
 
-# En son modeli kaydet
+
 model.save_pretrained("models/nlp_v1")
 tokenizer.save_pretrained("models/nlp_v1")
 

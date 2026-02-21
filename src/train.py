@@ -11,7 +11,7 @@ from utils import matrix_draw
 
 def main():
     
-    EPOCH_NUMBER = 40
+    EPOCH_NUMBER = 100
     LEARNING_RATE = 1e-5
     BATCH_SIZE = 32
     DATA_PATH = "Data/train"  
@@ -43,11 +43,12 @@ def main():
 
    
     print("🔥 Engines are running! Training has begun...")
-    
-    model.train() 
+    best_val_accuracy = 0.0
+
     for epoch in range(EPOCH_NUMBER):
-        total_loss = 0
-        total_accuary = 0
+        model.train() 
+        train_loss = 0
+        train_accuracy = 0
         
         for image, label in train_loader:
             image, label = image.to(device), label.to(device)
@@ -59,50 +60,51 @@ def main():
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item()
+            train_loss += loss.item()
             predictions = torch.argmax(predict, dim=1)
             batch_correct = (predictions == label).sum().item()
-            total_accuary += batch_correct
+            train_accuracy += batch_correct
 
-        mean_loss = total_loss / len(train_loader)
-        percentage_of_success = (total_accuary / len(train_loader.dataset)) * 100
-
-        print(f"Epoch {epoch+1}/{EPOCH_NUMBER} completed. Mean Loss: {mean_loss:.4f}, Percentage of Success: %{percentage_of_success:.2f}")
+        mean_train_loss = train_loss / len(train_loader)
+        percentage_of_train_success = (train_accuracy / len(train_loader.dataset)) * 100
 
     
-    print("🧪 Training is complete, moving on to the testing phase...")
+        print("🧪 Training is complete, moving on to the testing phase...")
+        
+        model.eval() 
+        val_loss = 0
+        val_accuracy = 0
+        actual_tags = []
+        model_predictions  = []
     
-    model.eval() 
-    actual_tags = []
-    model_predictions  = []
-    
-    with torch.no_grad():
-        total_loss = 0
-        total_accuary = 0
+        with torch.no_grad():
+            for val_image, val_label in val_loader:
+                val_image, val_label = val_image.to(device), val_label.to(device)
+                val_predict = model(val_image)
+                v_loss = criterion(val_predict, val_label)
 
-        for image, label in val_loader:
-            image, label = image.to(device), label.to(device)
-            predict = model(image)
-            loss = criterion(predict, label)
+                val_loss += v_loss.item()
+                v_predictions = torch.argmax(val_predict, dim=1)
+                v_batch_correct = (v_predictions == val_label).sum().item()
+                val_accuracy += v_batch_correct
 
-            total_loss += loss.item()
-            predictions = torch.argmax(predict, dim=1)
-            batch_correct = (predictions == label).sum().item()
-            total_accuary += batch_correct
+                model_predictions .extend(v_predictions.cpu().numpy())
+                actual_tags.extend(val_label.cpu().numpy())
 
-            model_predictions .extend(predictions.cpu().numpy())
-            actual_tags.extend(label.cpu().numpy())
+            mean_val_loss = val_loss / len(val_loader)
+            percentage_of_val_success = (val_accuracy / len(val_loader.dataset)) * 100
 
-        mean_loss = total_loss / len(val_loader)
-        percentage_of_success = (total_accuary / len(val_loader.dataset)) * 100
+            print(f"Epoch {epoch+1}/{EPOCH_NUMBER} | Train Loss: {mean_train_loss:.4f}, Train Acc: %{percentage_of_train_success:.2f} | Val Loss: {mean_val_loss:.4f}, Val Acc: %{percentage_of_val_success:.2f}")
+            if percentage_of_val_success > best_val_accuracy:
+                print(f"🔥 YENİ EN İYİ SKOR! (%{percentage_of_val_success:.2f}). Ağırlıklar kaydediliyor...")
+                best_val_accuracy = percentage_of_val_success
+                torch.save(model.state_dict(), "models/dermatolog_v4.2.pth")
+                best_actual_tags = actual_tags
+                best_model_predictions = model_predictions
 
-        print(f"🎉 TEST RESULT | Mean Loss: {mean_loss:.4f} | Success Rate: %{percentage_of_success:.2f}")
-
-    
-    torch.save(model.state_dict(), "models/dermatolog_v4.2.pth")
-    print("✅ Model weights 'models/dermatolog_v4.2pth' olarak kaydedildi!")
-    matrix_draw(actual_tags, model_predictions , title="Cepteki Dermatolog V4.2 - Production Test")
+    print("✅ Eğitim tamamlandı! En iyi modelin karmaşıklık matrisi çiziliyor...")
+    matrix_draw(best_actual_tags, best_model_predictions, title="Cepteki Dermatolog V4.2 - Production Test")
 
 
 if __name__ == "__main__":
-    main()
+        main()
