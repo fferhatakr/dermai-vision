@@ -4,10 +4,12 @@ import torch.optim as optim
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
 from torchvision import models
-
-from dataset import get_data_loaders
-from model import SkinCancerMobileNet
-from utils import matrix_draw
+import sys
+import os 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from src.datalar.dataset import get_data_loaders
+from src.models.model import SkinCancerMobileNet
+from src.utils import matrix_draw
 
 def main():
     

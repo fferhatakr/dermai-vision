@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from model import SkinCancerMobileNet
+from src.models.model import SkinCancerMobileNet
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torchvision.transforms as transforms
 

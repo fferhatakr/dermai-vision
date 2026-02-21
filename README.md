@@ -31,21 +31,33 @@ The project was developed step by step, with each version improving the model's 
 
 ```text
 AI_DET_PROJECT/
+├─ configs/
+│  └─ config.yaml (Project Configurations & Hyperparameters)
 ├─ Data/
 │  ├─ train/ (Image Dataset)
 │  └─ symptoms.csv (NLP Training Data)
 ├─ models/
 │  ├─ dermatolog_v4.2.pth (MobileNet Weights)
 │  └─ nlp_v1/ (DistilBERT Model & Tokenizer)
+├─ notebooks/
+│  └─ (Jupyter notebooks for experimentation and analysis)
 ├─ src/
-│  ├─ dataset.py (Data Augmentation & Normalization)
-│  ├─ model.py (Transfer Learning Architectures)
-│  ├─ train.py (Dynamic LR & Best Checkpoint Logic)
-│  ├─ nlp_model.py & nlp_dataset.py (NLP Pipeline)
-│  ├─ nlp_train.py (NLP Training Script)
-│  ├─ predict.py
-│  ├─ hybrid_predict.py (Multimodal Fusion: Image + Text)
-│  └─ utils.py
+│  ├─ datalar/
+│  │  ├─ dataset.py (Image Data Augmentation & Normalization)
+│  │  └─ nlp_dataset.py (Text Data Preparation & Tokenization)
+│  ├─ inference/
+│  │  ├─ predict.py (Image-Only Prediction)
+│  │  └─ hybrid_predict.py (Multimodal Fusion: Image + Text)
+│  ├─ models/
+│  │  ├─ model.py (CNN/MobileNet Architectures)
+│  │  └─ nlp_model.py (Transformer/NLP Architectures)
+│  ├─ training/
+│  │  ├─ train.py (Image Model Training Script)
+│  │  └─ nlp_train.py (NLP Model Training Script)
+│  └─ utils.py (Helper Functions, Matrix Drawings, etc.)
+├─ test/
+│  └─ (Reserved space for unit tests)
+├─ .env (Environment Variables & Pathing)
 ├─ requirements.txt
 └─ README.md
 ```
