@@ -16,7 +16,15 @@ The project was developed step by step, with each version improving the model's 
 | **v1** | Linear (MLP) | Baseline | 68.83% | 0.9014 | Basic skeleton established. |
 | **v3.1** | Custom CNN | Class Weights | 49.58% | 1.1857 | Justice System (Miracle): Overfitting broken, diagnostic blindness for rare diseases eliminated. |
 | **v4.0** | **ResNet18** | **Full Retraining** | **78.75%** | **0.7465** | **Transfer Learning Revolution:** Integrated pre-trained ImageNet weights, massive jump in understanding skin lesion features. |
-| **v4.2** | **MobileNetV3-Small** | **Mobile Optimization & Checkpoint** | **77.17%** | **0.1982** | **On-Device Ready:** En iyi modeli kaydetme (Validation Loop) eklendi. Hafif mimari ile medikal veri setinde optimum başarı yakalandı. |
+| **v4.2** | **MobileNetV3-Small** | **Mobile Optimization & Checkpoint** | **77.17%** | **0.1982** | **On-Device Ready:** The best model saving (Validation Loop) has been added. Optimum success was achieved in the medical data set with a lightweight architecture. |
+
+### v5.2 - Lightning & Optimization Update
+* ⚡ **Training Pipeline Refactored:** Migrated from Vanilla PyTorch to PyTorch Lightning for scalable and clean training architecture.       
+* 📉 **Smart Optimization:** Integrated `ReduceLROnPlateau` scheduler for dynamic learning rate adjustments to prevent overfitting.     
+
+
+
+
 
 > **Engineering Note (v4.2):** Hitting ~77% accuracy with a lightweight model like MobileNetV3-Small on a highly imbalanced, 7-class medical dataset is a massive optimization milestone. The model is now perfectly sized to be converted into TorchScript for native Android (Kotlin) deployment without draining device resources.
 
@@ -27,7 +35,10 @@ The project was developed step by step, with each version improving the model's 
 | **v1.0** | DistilBERT (TR) | Custom Dataset | 96.08% | Semantic Understanding: Detecting risk factors in text. |
 
 
-**Engineering Note (v5.0): The project is now in the "Multimodal" phase. It supports diagnostic accuracy by focusing not only on pixels but also on the patient's written complaints such as "rapid growth" and "bleeding".** ## 📂 File Structure
+> **Engineering Note (v5.0): The project is now in the "Multimodal" phase. It supports diagnostic accuracy by focusing not only on pixels but also on the patient's written complaints such as "rapid growth" and "bleeding".**
+
+
+## 📂 File Structure
 
 ```text
 AI_DET_PROJECT/
