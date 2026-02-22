@@ -40,14 +40,16 @@ def get_data_loaders(data_path, batch_size=32):
         dataset=train_set,
         batch_size=batch_size, 
         shuffle=True,
-        num_workers=0
+        num_workers=4,
+        pin_memory=True
     )
 
     val_loader = torch.utils.data.DataLoader(
         dataset=val_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=4,
+        pin_memory=True
     )
 
     
