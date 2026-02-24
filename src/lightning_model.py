@@ -1,3 +1,4 @@
+#Import the necessary libraries
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -6,10 +7,11 @@ from torchmetrics import Accuracy
 from models.model import SkinCancerMobileNet
 
 
+
 num_classes = 7
 
 class DermatologLightning(pl.LightningModule):
-    def __init__(self, class_weights):
+    def __init__(self, class_weights): 
         super().__init__()
 
         #We've Launched Our Model
@@ -47,12 +49,14 @@ class DermatologLightning(pl.LightningModule):
         #It continues with the same logic as the training_step steps.
         images,labels = batch
         predictions= self(images)
+        #Loss Value and Accuracy Calculated
         loss = self.criterion(predictions,labels)
         acc = self.accuracy(predictions,labels)
 
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log('val_acc', acc, on_step=False, on_epoch=True, prog_bar=True)
 
+    #We define the optimizer and the learning rate
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(),lr=1e-5)
         return optimizer

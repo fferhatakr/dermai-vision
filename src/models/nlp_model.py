@@ -1,9 +1,9 @@
 from transformers import DistilBertForSequenceClassification
 
 def build_nlp_model():
-    # 1. Modeli indir ve çıkış sayısını Normal/Riskli
+    #We download the model and set the number of output classes to Normal/Risk.
     model = DistilBertForSequenceClassification.from_pretrained(
-        "dbmdz/distilbert-base-turkish-cased",
+        "distilbert-base-uncased",
         num_labels = 2,
         
     )

@@ -15,8 +15,8 @@ from sklearn.model_selection import train_test_split
 model = build_nlp_model()
 EPOCH = 15
 
-df = pd.read_csv('Data/symptoms.csv')
-tokenizer = DistilBertTokenizer.from_pretrained('dbmdz/distilbert-base-turkish-cased')
+df = pd.read_csv('Data/metadata/symptoms_english.csv')
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 
 text = df['texts'].tolist()
 label = df['labels'].tolist()

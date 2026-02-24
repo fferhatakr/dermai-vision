@@ -1,7 +1,10 @@
+#Import the necessary libraries
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 
+
+#When we want to draw a matrix, it will suffice to call the matrix_draw function.
 def matrix_draw(real_labels, model_predictions, title="Complexity Matrix"):
   
     cm = confusion_matrix(real_labels, model_predictions)
