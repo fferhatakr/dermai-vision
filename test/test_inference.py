@@ -1,0 +1,1 @@
+#It will test the section that states, "Does it provide a formatted output stating 'The patient has a 90% risk of melanoma'?"

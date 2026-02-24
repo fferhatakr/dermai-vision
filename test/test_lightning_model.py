@@ -1,0 +1,1 @@
+#If we send a fake batch from the training_step section into the model, does it actually calculate and return a Loss value, or does it crash in the process?" This will test the core of the system.

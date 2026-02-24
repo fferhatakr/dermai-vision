@@ -1,0 +1,16 @@
+data:
+  data_path: "../Data/images/all_data" 
+  batch_size: 32
+
+training:
+  epoch_number: 40
+  learning_rate: 0.00001
+  
+model:
+  checkpoint_dir: "models/"
+  checkpoint_name: "best_triplet_model"
+  margin_value: 1.0
+  architectural : "mobilenet_v3"
+  
+
+

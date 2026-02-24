@@ -5,8 +5,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torchmetrics import Accuracy
 from models.model import SkinCancerMobileNet
-
-
+import torch.nn.functional as F
+from models.model import DermaScanModel
 
 num_classes = 7
 
@@ -59,4 +59,61 @@ class DermatologLightning(pl.LightningModule):
     #We define the optimizer and the learning rate
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(),lr=1e-5)
+        return optimizer
+    
+
+
+
+
+
+class TripletLightning(pl.LightningModule):
+    def __init__(self,learning_rate,margin_value): 
+        super().__init__()
+        self.learning_rate = learning_rate
+        self.model=DermaScanModel() 
+        self.criterion = nn.TripletMarginLoss(
+            margin=margin_value,
+            p=2
+            )
+
+
+    def forward(self,x):
+        x = self.model.backbone(x)
+        x = F.adaptive_avg_pool2d(x, (1, 1))
+        x = torch.flatten(x,1)
+
+
+        return x
+    
+
+    def training_step(self,batch,batc_idx):
+      
+        anchor,positive,negative = batch
+        anchor_embedding =self(anchor)
+        positive_embedding =self(positive)
+        negative_embedding = self(negative)
+
+    
+        loss = self.criterion(anchor_embedding,positive_embedding,negative_embedding)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+
+
+        return loss
+    
+    def validation_step(self,batch,batch_idx):
+
+        anchor,positive,negative = batch
+        anchor_embedding =self.forward(anchor)
+        positive_embedding =self.forward(positive)
+        negative_embedding = self.forward(negative)
+
+    
+        loss = self.criterion(anchor_embedding,positive_embedding,negative_embedding)
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+
+
+        return loss
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         return optimizer
