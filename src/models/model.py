@@ -5,6 +5,7 @@ import numpy
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision
 
 #We define the first version of the model.
 class SkinCancerModel(nn.Module):
@@ -114,3 +115,32 @@ class SkinCancerMobileNet(nn.Module):
 
     def forward(self, x): 
         return self.mobilenet_model(x) 
+
+
+
+
+"""
+Some may wonder why we rejected DenseNet. Our aim is to release 
+this project as a mobile application. We chose MobileNet because 
+DenseNet could experience significant optimisation issues on certain devices.
+"""
+#Define the fifth version of the model.
+class  DermaScanModel(nn.Module):
+    def __init__(self): 
+        super().__init__()
+
+
+        pretrained = torchvision.models.mobilenet_v3_small(weights='IMAGENET1K_V1')
+        self.backbone = pretrained.features #We are using the features of the pre-trained model.
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Dropout(0.2),
+            nn.Linear(1024,7)
+        )
+
+
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.classifier(x)
+        return x

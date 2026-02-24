@@ -1,7 +1,9 @@
 import torch
 import torchvision
 from torchvision import transforms
-
+import random
+from collections import defaultdict
+from torch.utils.data import Dataset
 
 #This function is used to load the dataset and split it into training and validation sets.
 def get_data_loaders(data_path, batch_size=32):
@@ -62,3 +64,49 @@ def get_data_loaders(data_path, batch_size=32):
     print(f"Test Set: {len(val_set)} image")
     
     return train_loader, val_loader
+
+
+
+
+
+class TripletDermaDataset(Dataset):
+        def __init__(self,data_path):
+            self.data = data_path
+            self.transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+            ])
+            self.index = torchvision.datasets.ImageFolder(self.data,transform=self.transform)
+            
+            self.label_to_indices=defaultdict(list) 
+
+            for i,label in enumerate(self.index.targets):
+                self.label_to_indices[label].append(i)
+            
+            
+            self.all_classes = list(self.label_to_indices.keys())
+
+
+        def __len__(self):
+            
+            return len(self.index)
+
+        def __getitem__(self,idx):
+            anchor_img , anchor_label = self.index[idx]
+            positive_list = self.label_to_indices[anchor_label]
+            positive_idx = random.choice(positive_list)
+            positive_img,_ = self.index[positive_idx]
+
+            negative_classes = self.all_classes.copy()
+            negative_classes.remove(anchor_label)
+            random_negative_class = random.choice(negative_classes)
+            negative_list = self.label_to_indices[random_negative_class]
+
+            negative_idx = random.choice(negative_list)
+            negative_img,_ = self.index[negative_idx]
+
+            return anchor_img,positive_img,negative_img
+
+
+            

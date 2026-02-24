@@ -1,0 +1,1 @@
+#Are the texts from patients (NLP data) being split into the correct tokens? Are their lengths exactly as we want them (e.g. max 512 words)? This will test that.

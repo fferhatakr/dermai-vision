@@ -15,13 +15,16 @@ This project is a deep learning-based skin cancer classification assistant devel
 
 The project was developed step by step, with each version improving the model's real-world data adaptation and deployment readiness.
 
-## Vision Models (Image Analysis)
-| Version | Architecture | Technique | Test Accuracy | Average Loss | Key Improvement |
+### Vision Models (Image Analysis)
+
+| Version | Architecture | Technique | Test Accuracy | Avg. Loss | Key Improvement |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **v1** | Linear (MLP) | Baseline | 68.83% | 0.9014 | Basic skeleton established. |
-| **v3.1** | Custom CNN | Class Weights | 49.58% | 1.1857 | Justice System (Miracle): Overfitting broken, diagnostic blindness for rare diseases eliminated. |
-| **v4.0** | **ResNet18** | **Full Retraining** | **78.75%** | **0.7465** | **Transfer Learning Revolution:** Integrated pre-trained ImageNet weights, massive jump in understanding skin lesion features. |
-| **v4.2** | **MobileNetV3-Small** | **Mobile Optimization & Checkpoint** | **77.17%** | **0.1982** | **On-Device Ready:** The best model saving (Validation Loop) has been added. Optimum success was achieved in the medical data set with a lightweight architecture. |
+| v1 | Linear (MLP) | Baseline | 68.83% | 0.9014 | Basic skeleton established. |
+| v3.1 | Custom CNN | Class Weights | 49.58% | 1.1857 | Overfitting broken; diagnostic blindness for rare classes eliminated. |
+| v4.0 | ResNet18 | Full Retraining | 78.75% | 0.7465 | Pre-trained ImageNet weights integrated; large jump in lesion feature understanding. |
+| v4.2 | MobileNetV3-Small | Mobile Optimization | 77.17% | 0.1982 | Best-model checkpointing added; lightweight architecture optimized for on-device inference. |
+| v5.2 | MobileNetV3-Small | PyTorch Lightning | — | — | Training pipeline refactored; `ReduceLROnPlateau` scheduler added for dynamic LR adjustment. |
+| v6.0 | MobileNetV3 + Triplet | Visual Similarity Search | — | 0.046 | **The Big Pivot:** Transitioned from classification to similarity learning. MLOps (YAML configs) and unit testing integrated for a robust production pipeline. |
 
 
 ### v5.2 - Lightning & Optimization Update
@@ -29,56 +32,65 @@ The project was developed step by step, with each version improving the model's 
 * 📉 **Smart Optimization:** Integrated `ReduceLROnPlateau` scheduler for dynamic learning rate adjustments to prevent overfitting.     
 
 
+> **Engineering Note (v4.2):** Hitting ~77% accuracy with a lightweight model like MobileNetV3-Small on a highly imbalanced, 7-class medical dataset is a massive optimization milestone. The model is now perfectly sized to be converted into TorchScript for native iOS(swift) deployment without draining device resources.
 
+### NLP Models (Symptom Analysis)
 
-
-> **Engineering Note (v4.2):** Hitting ~77% accuracy with a lightweight model like MobileNetV3-Small on a highly imbalanced, 7-class medical dataset is a massive optimization milestone. The model is now perfectly sized to be converted into TorchScript for native Android (Kotlin) deployment without draining device resources.
-
-
-## NLP Models (Symptom Analysis) - NEW!
 | Version | Architecture | Dataset | Accuracy | Key Improvement |
 | :--- | :--- | :--- | :--- | :--- |
-| **v1.0** | DistilBERT (TR) | Custom Dataset | 96.08% | Semantic Understanding: Detecting risk factors in text. |
+| v1.0 | DistilBERT (TR) | Custom Dataset | 96.08% | Semantic risk factor detection from patient-reported text. |
 
-
-> **Engineering Note (v5.0): The project is now in the "Multimodal" phase. It supports diagnostic accuracy by focusing not only on pixels but also on the patient's written complaints such as "rapid growth" and "bleeding".**
+> **Note (v5.0):** The project has entered a **multimodal phase** — diagnostics now incorporate not only image pixels but also free-text patient complaints (e.g. *"rapid growth"*, *"bleeding"*), improving overall diagnostic accuracy.
 
 
 ## 📂 File Structure
 
 ```text
 AI_DET_PROJECT/
-├─ configs/
-│  └─ config.yaml (Project Configurations & Hyperparameters)
-├─ Data/
-│  ├─ images/ (Image Dataset)
-│  │  └─ all_data
-│  └─ metadata (NLP Training Data)
-│     └─ symptoms_english.csv
-├─ models/
-│  ├─ dermatolog_v4.2.pth (MobileNet Weights)
-│  └─ nlp_v1/ (DistilBERT Model & Tokenizer)
-├─ notebooks/
-│  └─ (Jupyter notebooks for experimentation and analysis)
-├─ src/
-│  ├─ datalar/
-│  │  ├─ dataset.py (Image Data Augmentation & Normalization)
-│  │  └─ nlp_dataset.py (Text Data Preparation & Tokenization)
-│  ├─ inference/
-│  │  ├─ predict.py (Image-Only Prediction)
-│  │  └─ hybrid_predict.py (Multimodal Fusion: Image + Text)
-│  ├─ models/
-│  │  ├─ model.py (CNN/MobileNet Architectures)
-│  │  └─ nlp_model.py (Transformer/NLP Architectures)
-│  ├─ training/
-│  │  ├─ train.py (Image Model Training Script)
-│  │  └─ nlp_train.py (NLP Model Training Script)
-│  └─ utils.py (Helper Functions, Matrix Drawings, etc.)
-├─ test/
-│  └─ (Reserved space for unit tests)
-├─ .env (Environment Variables & Pathing)
-├─ requirements.txt
-└─ README.md
+├── configs/
+│   ├── database_config.yaml
+│   ├── inference_config.yaml
+│   ├── model_config.yaml
+│   └── train_config.yaml
+├── Data/
+│   ├── images/
+│   └── metadata/
+├── lightning_logs/
+├── models/
+├── notebooks/
+├── src/
+│   ├── datalar/
+│   │   ├── __init__.py
+│   │   ├── dataset.py
+│   │   └── nlp_dataset.py
+│   ├── inference/
+│   │   ├── __init__.py
+│   │   ├── hybrid_predict.py
+│   │   └── predict.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── model.py
+│   │   └── nlp_model.py
+│   ├── training/
+│   │   ├── __init__.py
+│   │   ├── nlp_train.py
+│   │   └── train_vanilla.py
+│   ├── __init__.py
+│   ├── lightning_model.py
+│   ├── train_lightning.py
+│   ├── train_triplet.py
+│   └── utils.py
+├── test/
+│   ├── test_dataset.py
+│   ├── test_inference.py
+│   ├── test_lightning_model.py
+│   ├── test_model.py
+│   ├── test_nlp_dataset.py
+│   └── test_utils.py
+├── .env
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
 ## 🛠️ Technologies and Techniques Used
@@ -90,14 +102,17 @@ AI_DET_PROJECT/
 - **Optimization: AdamW optimizer, Dynamic Learning Rate, Softmax Probability Scoring.**  
 
 ## 🎯 Roadmap
-* **[x] v2: Migration to CNN architecture.**
-* **[x] v2.1: Improving model reliability with Data Augmentation.**
-* **[x] v3.1: Solving the imbalanced data problem with Class Weights.**
-* **[x] v4.0: Maximizing accuracy with Transfer Learning (ResNet18).**
-* **[x] v4.2: Mobile optimization with MobileNetV3-Small.**
-* **[x] v5.0: Multimodal NLP Integration (Symptom analysis)**
-* **[x] v5.1: Unified Multimodal Fusion (Combining Image + Text scores).**  
-* **[ ] v7.0: Mobile Deployment (Android Kotlin integration).** 
+
+- [x] v2.0: Migration to CNN architecture.
+- [x] v2.1: Improving model reliability with Data Augmentation.
+- [x] v3.1: Solving the imbalanced data problem with Class Weights.
+- [x] v4.0: Maximizing accuracy with Transfer Learning (ResNet18).
+- [x] v4.2: Mobile optimization with MobileNetV3-Small.
+- [x] v5.0: Multimodal NLP Integration (Symptom analysis).
+- [x] v5.1: Unified Multimodal Fusion (Combining Image + Text scores).
+- [x] v5.2: Training pipeline refactored with PyTorch Lightning & smart LR scheduling.
+- [x] v6.0: The Big Pivot — Transitioned from classification to Visual Similarity Search (Triplet Loss). MLOps & unit testing integrated.
+- [ ] v7.0: Mobile Deployment (Android Kotlin integration).
 
 
 ## ⚙️ Installation 
@@ -132,10 +147,10 @@ Since we now have a modular structure, you can start training directly from the 
 pip install -r requirements.txt
 
 # 2. Train NLP Model
-python src/nlp_train.py
+python src/training/nlp_train.py
 
-# 3. Train Vision Model
-python src/train.py
+# 3. Train Vision Model (Lightning)
+python src/train_lightning.py
 ```
 
 ## 🛠️ Using the Model in Code (Usage)  
