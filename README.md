@@ -157,7 +157,7 @@ print("Model loaded successfully and ready for testing!")
 ## 🧠 Multimodal Fusion (Hybrid Diagnosis) - NEW!
 ```bash
 python src/hybrid_predict.py
-# Çıktı Örneği:
+# Output Example:
 # 📸 Image Risk : %95.38
 # ✍️ Complaint Risk : %99.92
 # 🧠 HYBRID SCORE : %98.10
@@ -167,5 +167,5 @@ python src/hybrid_predict.py
 ## NLP Inference (Symptom Analysis)
 ```bash
 from src.predict import predict_symptom
-# Analyze text: "Benim rengi koyulaştı." -> Output: %96 Risky.
+# Analyze text: "My color has darkened" -> Output: %96 Risky.
 ```
