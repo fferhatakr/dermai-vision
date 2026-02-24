@@ -4,6 +4,11 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
 
+## ⚠️ Disclaimer:
+**This project is an AI research and engineering demonstration.**
+**It is NOT intended for real medical diagnosis.**
+
+
 This project is a deep learning-based skin cancer classification assistant developed using PyTorch. The project covers an engineering journey that starts from flat-layer models (Linear), extends to custom CNN architectures, and currently utilizes **Multimodal Fusion (MobileNetV3 & DistilBERT)** for mobile-optimized, high-accuracy predictions.
 
 ### 🚀 Model Evolution and Performance Table
@@ -17,6 +22,7 @@ The project was developed step by step, with each version improving the model's 
 | **v3.1** | Custom CNN | Class Weights | 49.58% | 1.1857 | Justice System (Miracle): Overfitting broken, diagnostic blindness for rare diseases eliminated. |
 | **v4.0** | **ResNet18** | **Full Retraining** | **78.75%** | **0.7465** | **Transfer Learning Revolution:** Integrated pre-trained ImageNet weights, massive jump in understanding skin lesion features. |
 | **v4.2** | **MobileNetV3-Small** | **Mobile Optimization & Checkpoint** | **77.17%** | **0.1982** | **On-Device Ready:** The best model saving (Validation Loop) has been added. Optimum success was achieved in the medical data set with a lightweight architecture. |
+
 
 ### v5.2 - Lightning & Optimization Update
 * ⚡ **Training Pipeline Refactored:** Migrated from Vanilla PyTorch to PyTorch Lightning for scalable and clean training architecture.       
@@ -45,8 +51,10 @@ AI_DET_PROJECT/
 ├─ configs/
 │  └─ config.yaml (Project Configurations & Hyperparameters)
 ├─ Data/
-│  ├─ train/ (Image Dataset)
-│  └─ symptoms.csv (NLP Training Data)
+│  ├─ images/ (Image Dataset)
+│  │  └─ all_data
+│  └─ metadata (NLP Training Data)
+│     └─ symptoms_english.csv
 ├─ models/
 │  ├─ dermatolog_v4.2.pth (MobileNet Weights)
 │  └─ nlp_v1/ (DistilBERT Model & Tokenizer)

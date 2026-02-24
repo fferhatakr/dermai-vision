@@ -1,4 +1,5 @@
-import torch
+#Import the necessary libraries
+import torch  
 import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -11,38 +12,43 @@ from lightning_model import DermatologLightning
 
 
 def main():
-    #Değişkenleri tek tek tanımlıyoruz
+    #We define our variables at the outset so that if we wish to make changes later, we only need to make changes in one place.
     EPOCH_NUMBER = 40
     BATCH_SIZE = 32
-    DATA_PATH = "Data/train"
+    DATA_PATH = "Data/images/all_data"
 
+
+
+    # The train and validation dataloaders are created by passing DATA_PATH and BATCH_SIZE to the get_data_loaders function.
     print("Data is loading from the factory...")
-    # get_data_loaders fonksiyonuna DATA_PATH ve BATCH_SIZE verilerek
-    # train ve validation dataloader'ları oluşturuluyor
     train_loader , val_loader = get_data_loaders(DATA_PATH,BATCH_SIZE)
 
+
+
     print("⚖️ Penalty points are being calculated...")
-    #Eğitim etiketleri
+
+    #We are looping through the labels assigned to classes in education.
     train_labels = [label for _, label in train_loader.dataset] 
-    # compute_class_weight fonksiyonu ile sınıf ağırlıkları hesaplanıyor
+
+    #The class weights are calculated using the # compute_class_weight function.
     calculated_weights = compute_class_weight(
         class_weight="balanced",
         classes=np.unique(train_labels),
         y=train_labels
     )
 
-
+    #We call the weight tensor as torch.float and provide the weight calculation as a parameter.
     weight_tensor = torch.FloatTensor(calculated_weights)
 
-    # Özel Lightning modelini başlat
-    # Sınıf ağırlıkları model içindeki kayıp fonksiyonuna aktarılır
+    # Launch the Lightning model
+    # Class weights are transferred to the loss function within the model.
     print("⚡ Lightning Model Initializing...") 
     lightning_model=DermatologLightning(weight_tensor)
 
     print("💾 Setting up Best Checkpoint...")
 
-    # Doğrulama doğruluğuna göre en iyi modeli kaydet
-    # Aşırı uyumu önler ve otomatik olarak en uygun modeli korur
+    # Save the best model based on validation accuracy
+    # Prevents overfitting and automatically preserves the most suitable model
     checkpoint_callback=ModelCheckpoint(
         dirpath="models/",
         filename="best_lightning_model",
@@ -50,11 +56,11 @@ def main():
         mode="max",
     )
 
-    print("🔥 Trainer is starting the engines!")
     # PyTorch Lightning Trainer
     # - Cihaz yerleştirmeyi yönetir (CPU/GPU)
     # - Eğitim döngüsünü yönetir
     # - Geri aramaları otomatik olarak entegre eder
+    print("🔥 Trainer is starting the engines!")
     trainer = pl.Trainer(
         max_epochs=EPOCH_NUMBER,
         accelerator="auto",

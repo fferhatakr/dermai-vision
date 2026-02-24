@@ -22,7 +22,7 @@ def predict(text):
 
     return prediction,probs[0]
 
-line = "Vücudumdaki leke çok kısa sürede yayıldı ve rengi koyulaştı."
+line = "The mark on my body spread very quickly and darkened in colour."
 result, probability = predict(line)
 
 label = "⚠️ RISKY" if result == 1 else "✅ NORMAL"

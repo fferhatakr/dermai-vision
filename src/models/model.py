@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+#We define the first version of the model.
 class SkinCancerModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -18,8 +19,11 @@ class SkinCancerModel(nn.Module):
     def forward(self, x):
        x = self.layer(x)
        return x
-    
+
+#We define the number of classes.
 num_classes = 7
+
+#We define the second version of the model.
 class SkinCancerModelV2(nn.Module):
     def __init__(self):
         super().__init__()
@@ -42,7 +46,7 @@ class SkinCancerModelV2(nn.Module):
         self.dropout = nn.Dropout(0.5)
         self.fc1 = nn.Linear(50176,128)
         self.fc2 = nn.Linear(128,num_classes)
-
+    #We define the forward pass of the model.
     def forward(self,x):
         x = self.conv1(x)
         x = self.relu1(x)
@@ -72,7 +76,7 @@ class SkinCancerModelV2(nn.Module):
 
 
 
-
+#We define the third version of the model.
 class SkinCancerResNet(nn.Module):
     def __init__(self, num_classes=7):
         super().__init__()
@@ -93,7 +97,7 @@ class SkinCancerResNet(nn.Module):
         return self.resnet18_model(x)
     
 
-
+#We define the fourth version of the model.
 class SkinCancerMobileNet(nn.Module): 
     def __init__(self, num_classes=7):  
         super().__init__() 
