@@ -1,6 +1,6 @@
 import torch
 import yaml
-from src.lightning_model import TripletLightning
+from src.training.lightning_model import TripletLightning
 
 
 def test_triplet_model_output_shape():

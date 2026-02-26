@@ -1,7 +1,7 @@
 #Import the necessary libraries 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from lightning_model import TripletLightning
+from src.training.lightning_model import TripletLightning
 from torch.utils.data import DataLoader
 from datalar.dataset import TripletDermaDataset
 import yaml

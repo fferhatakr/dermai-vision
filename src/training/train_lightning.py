@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sklearn.utils.class_weight import compute_class_weight
 from datalar.dataset import get_data_loaders
-from lightning_model import DermatologLightning 
+from src.training.lightning_model import DermatologLightning 
 
 
 

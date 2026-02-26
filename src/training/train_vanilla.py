@@ -9,7 +9,7 @@ import sys
 import os 
 from src.datalar.dataset import get_data_loaders
 from src.models.model import SkinCancerMobileNet
-from src.utils import matrix_draw
+from src.training.utils import matrix_draw
 
 #It shows the file path on our computer. You may not need to do it.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))) 
