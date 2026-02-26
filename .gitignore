@@ -10,7 +10,7 @@ lightning_logs/
 # --- Python ve Ortam Dosyaları ---
 
 venv/
-env/
+.env/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/

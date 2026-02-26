@@ -1,10 +1,12 @@
-#Import the necessary libraries 
+# Import the necessary libraries 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from src.training.lightning_model import TripletLightning
 from torch.utils.data import DataLoader
-from datalar.dataset import TripletDermaDataset
+from src.datalar.dataset import TripletDermaDataset
 import yaml
+
+pl.seed_everything(42, workers=True)
 
 
 
