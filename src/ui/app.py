@@ -22,7 +22,7 @@ uploaded_file = st.file_uploader("Upload a photo of your skin...", type=["jpg", 
 if uploaded_file is not None:
     
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Photo", use_container_width=True)
+    st.image(image, caption="Uploaded Photo", width=250)
     
     if st.button("🔍 Start Analysis"):
         with st.spinner("AI is analyzing the image, please wait..."):
