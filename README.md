@@ -80,7 +80,7 @@ Since the system is a Content-Based Image Retrieval (CBIR) engine, standard clas
 * **Top-1 Accuracy:** Does the single closest retrieved embedding share the exact same diagnosis?
 * **Recall@5 (Top-5 Accuracy):** Is the correct diagnosis present within the 5 nearest neighbors?
 * **Mean Average Precision (mAP):** Measures the overall clustering quality and ranking order of the retrieved cases in the vector space.
-*(Note: Quantitative benchmark scores for the CBIR pipeline are continually updated in the training logs).*
+
 
 
 ### 📊 Quantitative Benchmark Results (CBIR Pipeline)
