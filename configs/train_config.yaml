@@ -1,5 +1,5 @@
 data:
-  data_path: "../Data/images/all_data" 
+  data_path: "Data/images/all_data" 
   batch_size: 32
 
 training:
@@ -8,7 +8,7 @@ training:
   
 model:
   checkpoint_dir: "models/"
-  checkpoint_name: "best_triplet_model"
+  checkpoint_name: "best_lightning_model-v2.ckpt"
   margin_value: 1.0
   architectural : "mobilenet_v3"
   
