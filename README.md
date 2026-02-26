@@ -29,9 +29,9 @@ graph LR
     E -->|Semantic Risk| G[Hybrid Fusion Engine]
     F -->|Top-5 Visual Matches| G
     G -->|Final Diagnosis Score| B
-
----
 ```
+---
+
 ## 🚀 Engineering & Research Journey
 
 Following MLOps best practices, this project separates the **Software/System Versioning** (the pipeline and application logic) from the **Model Registry** (the architectural AI experiments).
