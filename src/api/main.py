@@ -70,8 +70,10 @@ async def analyze_image( file:UploadFile = File()):
     }
 
 derma_model = load_ai_model()
-ref_embeddings = torch.load("reference_embeddings.pt", map_location="cpu")
-ref_labels = torch.load("reference_labels.pt", map_location="cpu")
+path = "Data/artifacts/reference_embeddings.pt"
+path2= "Data/artifacts/reference_labels.pt"
+ref_embeddings = torch.load(path, map_location="cpu")
+ref_labels = torch.load(path2, map_location="cpu")
 
 @app.get("/")
 def  application():
