@@ -219,15 +219,15 @@ streamlit run src/ui/app.py
 
 **1. Train Vision Model (PyTorch Lightning & Triplet Loss)**
 ```bash
-python src/training/train_lightning.py
+python src/training/lightning_trainer.py
 ```
 **2. Extract and Save Embeddings (Update the KNN Database)**
 ```bash
-python src/inference/evaluate_retrieval.py
+python src/inference/benchmark_retrieval.py
 ```
 **3. Train NLP Model (Symptom Analysis)**
 ```bash
-python src/training/nlp_train.py
+python src/training/nlp_trainer.py
 ```
 
 

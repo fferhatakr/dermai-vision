@@ -1,5 +1,5 @@
 model:
-  path : "models/best_lightning_model-v2.ckpt"
+  path : "checkpoints/nlp_v1/best_lightning_model-v2.ckpt"
 
 search:
   top_k: 5
