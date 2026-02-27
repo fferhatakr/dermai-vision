@@ -1,8 +1,12 @@
 #  Skin Cancer Detection - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
-
+![Recall@5](https://img.shields.io/badge/Recall@5-87%25-darkgreen)
+![mAP](https://img.shields.io/badge/mAP-82%25-darkgreen)
+![Latency](https://img.shields.io/badge/Latency-45ms-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
+
 
 ##  Disclaimer:
 **This project is an AI research and engineering demonstration.**
@@ -168,25 +172,9 @@ AI_DET_PROJECT/
 - **Imbalanced Data Solution: Class Weights (sklearn) for vision; data augmentation for NLP.** 
 - **Optimization: AdamW optimizer, Dynamic Learning Rate, Softmax Probability Scoring.**  
 
-##  Roadmap & Future Releases
-
-**System & Pipeline Evolution**
-- [x] `v1.0.0`: Local training pipelines and Baseline setup.
-- [x] `v1.1.0`: PyTorch Lightning refactor and modularization.
-- [x] `v2.0.0`: Transition to Content-Based Image Retrieval (CBIR) logic.
-- [x] `v2.1.0`: Web System Integration (FastAPI backend + Streamlit UI).
-- [ ] `v2.2.0`: Multimodal UI - Adding Symptom/Text NLP input to the Streamlit app.
-- [ ] `v2.3.0`: Explainable AI (XAI) - Implementing Saliency/CAM heatmaps on the UI to visualize lesion focus areas.
-- [ ] `v2.4.0`: Database Scaling - Integrating Meta's FAISS for millisecond-level similarity search on massive datasets.
-- [ ] `v2.5.0`: MLOps & Deployment - Dockerizing the application and deploying the REST API & UI to the cloud.
-- [ ] `v3.0.0`: Cross-Platform Mobile Deployment (Native iOS app integration via Swift).
-
-**Model Iterations**
-- [x] `Vision-Mobile-v1`: Mobile optimization (MobileNetV3-Small).
-- [x] `Vision-Embed-v2`: CBIR Similarity search embedding optimization.
-- [ ] `Vision-Embed-v3`: Transition to MobileNetV3-Large for higher accuracy.
-- [ ] `Vision-Robust-v4`: Adding Out-of-Distribution (OOD) rejection classes (e.g., non-skin objects).
-- [ ] `Vision-Edge-v5`: Model compression (Quantization & ONNX export) for lightweight on-device mobile inference.
+##  Project Documentation
+* **[CHANGELOG.md](CHANGELOG.md):** Detailed history of version updates and fixes.
+* **[ROADMAP.md](ROADMAP.md):** Future features and my technical learning path (Docker, iOS, XAI).
 
 
 ##  Installation 
