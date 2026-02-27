@@ -1,4 +1,4 @@
-#  Skin Cancer Detection - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
+#  DermAIVision - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
 ![Recall@5](https://img.shields.io/badge/Recall@5-87%25-darkgreen)
 ![mAP](https://img.shields.io/badge/mAP-82%25-darkgreen)
 ![Latency](https://img.shields.io/badge/Latency-45ms-blue)
@@ -182,8 +182,8 @@ AI_DET_PROJECT/
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/fferhatakr/AI_DET_PROJECT.git
-cd AI_DET_PROJECT
+git clone https://github.com/fferhatakr/dermai-vision.git
+cd dermai-vision
 ```
 
 2. Create a virtual environment:
