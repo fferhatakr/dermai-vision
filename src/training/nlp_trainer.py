@@ -1,9 +1,9 @@
 import pandas as pd
 from torch.utils.data import DataLoader
-from src.datalar.nlp_dataset import SymptomDataset
+from src.dataloader.text_corpus import SymptomDataset
 from transformers import DistilBertTokenizer
 from transformers import DataCollatorWithPadding
-from src.models.nlp_model import build_nlp_model
+from architectures.text_encoder import build_nlp_model
 from torch.optim import AdamW
 import torch
 import torch.nn.functional as F

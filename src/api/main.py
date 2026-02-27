@@ -8,7 +8,7 @@ import torch
 from torchvision import transforms
 import torch.nn.functional as F
 
-from src.training.lightning_model import TripletLightning
+from src.training.trainer_core import TripletLightning
 
 def load_ai_model():
     file_path = "configs/inference_config.yaml"

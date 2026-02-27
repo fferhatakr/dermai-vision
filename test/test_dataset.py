@@ -1,6 +1,6 @@
 import torch
 import yaml
-from src.datalar.dataset import TripletDermaDataset
+from dataloader.image_dataset import TripletDermaDataset
 
 def test_triplet_dataset_output():
     """

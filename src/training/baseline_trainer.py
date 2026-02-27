@@ -7,9 +7,9 @@ from sklearn.utils.class_weight import compute_class_weight
 from torchvision import models
 import sys
 import os 
-from src.datalar.dataset import get_data_loaders
-from src.models.model import SkinCancerMobileNet
-from src.training.utils import matrix_draw
+from dataloader.image_dataset import get_data_loaders
+from architectures.vision_model import SkinCancerMobileNet
+from training.helpers import matrix_draw
 
 #It shows the file path on our computer. You may not need to do it.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))) 
@@ -24,19 +24,19 @@ def main():
     DATA_PATH = "Data/images/all_data"  
 
     #We call our get_Data_loaders function for train_loader and val_loader and provide the necessary parameters.   
-    print("📦 Data is loading from the factory...")
+    print(" Data is loading from the factory...")
     train_loader, val_loader = get_data_loaders(DATA_PATH, BATCH_SIZE)
 
     #If there is a graphics card available in our system, it will use that; otherwise, it will use the processor.
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"🖥️ VIP Room Used: {device}")
+    print(f" VIP Room Used: {device}")
 
     
     #You can think of it as if we have fitted our model to the existing engine.
     model = SkinCancerMobileNet().to(device)
 
     
-    print("⚖️ Penalty points are being calculated...")
+    print(" Penalty points are being calculated...")
     train_labels = [label for _, label in train_loader.dataset] 
     calculated_weights = compute_class_weight(
         class_weight="balanced",  #We are specifying the penalty section.
@@ -52,7 +52,7 @@ def main():
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE)
 
    
-    print("🔥 Engines are running! Training has begun...")
+    print(" Engines are running! Training has begun...")
     best_val_accuracy = 0.0
 
     for epoch in range(EPOCH_NUMBER):
@@ -79,7 +79,7 @@ def main():
         percentage_of_train_success = (train_accuracy / len(train_loader.dataset)) * 100
 
     
-        print("🧪 Training is complete, moving on to the testing phase...")
+        print(" Training is complete, moving on to the testing phase...")
         
         model.eval() 
         val_loss = 0
@@ -106,13 +106,13 @@ def main():
 
             print(f"Epoch {epoch+1}/{EPOCH_NUMBER} | Train Loss: {mean_train_loss:.4f}, Train Acc: %{percentage_of_train_success:.2f} | Val Loss: {mean_val_loss:.4f}, Val Acc: %{percentage_of_val_success:.2f}")
             if percentage_of_val_success > best_val_accuracy:
-                print(f"🔥 NEW HIGH SCORE! (%{percentage_of_val_success:.2f}). ")
+                print(f" NEW HIGH SCORE! (%{percentage_of_val_success:.2f}). ")
                 best_val_accuracy = percentage_of_val_success
                 torch.save(model.state_dict(), "models/dermatolog_v4.2.pth")
                 best_actual_tags = actual_tags
                 best_model_predictions = model_predictions
 
-    print("✅ Training completed! The complexity matrix of the best model is being plotted...")
+    print(" Training completed! The complexity matrix of the best model is being plotted...")
     matrix_draw(best_actual_tags, best_model_predictions, title="DermaScan V4.2 - Production Test")
 
 

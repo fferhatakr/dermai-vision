@@ -1,16 +1,12 @@
 # --- Data and Model Weights (NEVER TO BE REMOVED) ---
-Data/
-weights/
-models/*.ckpt
-models/*.pth
-models/*.safetensors
-models/nlp_v1/
+Data/images/
+Data/metadata/
+checkpoints/
 lightning_logs/
 
-# --- Python ve Ortam Dosyaları ---
-
+# --- Python and Environment Files ---
 venv/
-.env/
+.env
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
@@ -18,3 +14,5 @@ __pycache__/
 
 # --- Notebooks ---
 notebooks/v3_dermatolog.ipynb
+notebooks/v2_dermatolog.ipynb
+notebooks/v1_dermatolog.ipynb

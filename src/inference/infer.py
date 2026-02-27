@@ -25,6 +25,6 @@ def predict(text):
 line = "The mark on my body spread very quickly and darkened in colour."
 result, probability = predict(line)
 
-label = "⚠️ RISKY" if result == 1 else "✅ NORMAL"
+label = " RISKY" if result == 1 else " NORMAL"
 print(f"Result: {label}")
 print(f"Normal Probability: %{probability[0]*100:.2f} | Probability of Risk: %{probability[1]*100:.2f}")

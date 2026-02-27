@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from src.models.model import SkinCancerMobileNet
+from architectures.vision_model import SkinCancerMobileNet
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torchvision.transforms as transforms
 
@@ -56,9 +56,9 @@ class DermatologistAI:
         final_risk_score = cv_score*cv_weight +nlp_score*nlp_weight
 
         if final_risk_score >= 0.50:
-            diagnosis = "⚠️ RISKY (Consult a Specialist)"
+            diagnosis = " RISKY (Consult a Specialist)"
         else:
-            diagnosis = "✅ NORMAL"
+            diagnosis = " NORMAL"
         
         return {
             "Image_Risk": cv_score,
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     CV_PATH = "models/dermatolog_v4.2.pth"
     NLP_PATH = "models/nlp_v1"
     
-    print("🤖 DermaScan AI  Loading... Please wait.")
+    print(" DermaScan AI  Loading... Please wait.")
     ai_asistan = DermatologistAI(cv_model_path=CV_PATH, nlp_model_path=NLP_PATH)
     
 
@@ -80,13 +80,13 @@ if __name__ == "__main__":
     test_text = "The mark on my body spread very quickly and darkened in colour.."
     
 
-    print("\n🔍 Analysis in progress...")
+    print("\n Analysis in progress...")
     result = ai_asistan.hybrid_diagnosis(image_path=test_image, text=test_text, cv_weight=0.4, nlp_weight=0.6)
     
     # 5. Sonuçları Ekrana Bas
     print("\n" + "="*40)
-    print(f"📸 Image Risk : %{result['Image_Risk']*100:.2f}")
-    print(f"✍️ Complaint Risk : %{result['Complaint_Risk']*100:.2f}")
-    print(f"🧠 HYBRID SCORE : %{result['Hybrid_Score']*100:.2f}")
-    print(f"🩺 DIAGNOSIS : {result['Diagnosis']}")
+    print(f" Image Risk : %{result['Image_Risk']*100:.2f}")
+    print(f" Complaint Risk : %{result['Complaint_Risk']*100:.2f}")
+    print(f" HYBRID SCORE : %{result['Hybrid_Score']*100:.2f}")
+    print(f" DIAGNOSIS : {result['Diagnosis']}")
     print("="*40)

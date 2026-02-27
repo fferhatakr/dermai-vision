@@ -4,8 +4,8 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sklearn.utils.class_weight import compute_class_weight
-from datalar.dataset import get_data_loaders
-from src.training.lightning_model import DermatologLightning 
+from dataloader.image_dataset import get_data_loaders
+from src.training.trainer_core import DermatologLightning 
 
 
 
@@ -25,7 +25,7 @@ def main():
 
 
 
-    print("⚖️ Penalty points are being calculated...")
+    print(" Penalty points are being calculated...")
 
     #We are looping through the labels assigned to classes in education.
     train_labels = [label for _, label in train_loader.dataset] 
@@ -42,10 +42,10 @@ def main():
 
     # Launch the Lightning model
     # Class weights are transferred to the loss function within the model.
-    print("⚡ Lightning Model Initializing...") 
+    print(" Lightning Model Initializing...") 
     lightning_model=DermatologLightning(weight_tensor)
 
-    print("💾 Setting up Best Checkpoint...")
+    print(" Setting up Best Checkpoint...")
 
     # Save the best model based on validation accuracy
     # Prevents overfitting and automatically preserves the most suitable model
@@ -60,7 +60,7 @@ def main():
     # - Cihaz yerleştirmeyi yönetir (CPU/GPU)
     # - Eğitim döngüsünü yönetir
     # - Geri aramaları otomatik olarak entegre eder
-    print("🔥 Trainer is starting the engines!")
+    print(" Trainer is starting the engines!")
     trainer = pl.Trainer(
         max_epochs=EPOCH_NUMBER,
         accelerator="auto",

@@ -1,23 +1,23 @@
-# 🩺 Skin Cancer Detection - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
+#  Skin Cancer Detection - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
 
-## ⚠️ Disclaimer:
+##  Disclaimer:
 **This project is an AI research and engineering demonstration.**
 **It is NOT intended for real medical diagnosis.**
 
 
 This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (MobileNetV3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
 
-## 🌟 What's New in v2.1.0: End-to-End Web System
+##  What's New in v2.1.0: End-to-End Web System
 The project is no longer just a set of training scripts. It is now a fully functional product:
 * **The Brain (KNN Retrieval):** Instead of standard classification, the model extracts 576-dimensional feature vectors (embeddings) from a new patient's image and compares them against a vast, pre-calculated database of diagnosed cases using K-Nearest Neighbors.
 * **The Backend (FastAPI):** A lightning-fast REST API (`uvicorn`) that handles image processing, tensor normalization, and real-time similarity matching.
 * **The Frontend (Streamlit):** An interactive, user-friendly web interface where users can upload dermoscopy images and receive instant, confidence-based diagnostic feedback.
 
-## 🏗️ System Architecture Flow
+##  System Architecture Flow
 
 ```mermaid
 graph LR
@@ -32,11 +32,11 @@ graph LR
 ```
 ---
 
-## 🚀 Engineering & Research Journey
+##  Engineering & Research Journey
 
 Following MLOps best practices, this project separates the **Software/System Versioning** (the pipeline and application logic) from the **Model Registry** (the architectural AI experiments).
 
-### 🛠️ System Architecture & Pipeline Releases (Software)
+###  System Architecture & Pipeline Releases (Software)
 This section tracks the engineering evolution of the project's infrastructure.
 
 * **`v1.0.0` - Initial Prototype:** Manual training scripts, data augmentation, and basic PyTorch dataloaders established.
@@ -44,7 +44,7 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v2.0.0` - The CBIR Pivot:** Major architectural shift. Transitioned from standard classification to a Content-Based Image Retrieval (CBIR) pipeline using K-Nearest Neighbors (KNN) and Triplet Loss. 
 * **`v2.1.0` - Full-Stack Integration:** *(Current)* End-to-end system deployed. Built a FastAPI backend for real-time inference and L2 tensor normalization, coupled with an interactive Streamlit web interface.
 
-### 🧠 Model Registry & Experiments (AI Research)
+###  Model Registry & Experiments (AI Research)
 This section tracks the evolution of the AI models.
 
 | Model ID | Architecture | Technique | Engineering Note |
@@ -55,12 +55,12 @@ This section tracks the evolution of the AI models.
 | **`Vision-Mobile-v1`**| MobileNetV3-Small| Mobile Optimization | Lightweight architecture selected for future iOS/Android on-device inference. |
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet| Metric Learning | **Current Production Model.** Optimized to map visually similar conditions closer together in a 576-dimensional embedding space. |
 
-### ✍️ NLP Model Registry (Multimodal Expansion)
+###  NLP Model Registry (Multimodal Expansion)
 | Model ID | Architecture | Capability | Note |
 | :--- | :--- | :--- | :--- |
 | **`NLP-Distil-v1`** | DistilBERT (EN) | Symptom Analysis | Semantic risk factor detection from patient-reported free-text. |
 
-## 🔬 Architecture Decisions & Evaluation
+##  Architecture Decisions & Evaluation
 
 To transition this project from a research experiment to an industry-grade product, specific architectural and evaluation decisions were made:
 
@@ -83,7 +83,7 @@ Since the system is a Content-Based Image Retrieval (CBIR) engine, standard clas
 
 
 
-### 📊 Quantitative Benchmark Results (CBIR Pipeline)
+###  Quantitative Benchmark Results (CBIR Pipeline)
 To ensure reliability, the models are evaluated not just on accuracy, but on their retrieval capabilities in the embedding space.
 
 | Model ID | Architecture | Recall@5 | mAP | Avg. Inference Latency (CPU) |
@@ -94,7 +94,7 @@ To ensure reliability, the models are evaluated not just on accuracy, but on the
 
 *Note: The shift to MobileNetV3 drastically reduced latency, making real-time web inference and future mobile deployment viable, while Triplet Loss significantly boosted the Mean Average Precision (mAP) of the retrieval system.*
 
-### 🔄 Reproducibility & Training Details
+###  Reproducibility & Training Details
 Industry-standard reproducibility is maintained by tracking all hyperparameters and system configurations.
 
 * **Dataset:** ISIC Archive Subset (~8,000+ dermoscopy images)
@@ -106,60 +106,61 @@ Industry-standard reproducibility is maintained by tracking all hyperparameters 
 * **Random Seed:** `42` (forced for deterministic weight initialization and splitting)
 
 
-## 📂 File Structure
+##  File Structure
 
 ```text
 AI_DET_PROJECT/
-├── configs/
-│   ├── database_config.yaml
+├── checkpoints/              # Trained model weights (not tracked by Git)
+│   ├── dermatolog/           # Dermatology model checkpoints
+│   └── nlp_v1/               # NLP model checkpoints
+│
+├── configs/                  # Configuration files
 │   ├── inference_config.yaml
-│   ├── model_config.yaml
 │   └── train_config.yaml
-├── Data/
-│   ├── images/
-│   └── metadata/
-├── lightning_logs/
-├── models/
-├── notebooks/
-├── src/
-│   ├── datalar/
-│   │   ├── __init__.py
-│   │   ├── dataset.py
-│   │   └── nlp_dataset.py
-│   ├── inference/
-│   │   ├── __init__.py
+│
+├── Data/                     # Dataset files (not tracked by Git)
+│   ├── artifacts/            # Reference embeddings and labels (tracked)
+│   ├── images/               # Raw images
+│   └── metadata/             # Dataset metadata
+│
+├── src/                      # Source code
+│   ├── api/                  # API entry point
+│   │   └── main.py
+│   ├── architectures/        # Model architecture definitions
+│   │   ├── vision_model.py
+│   │   └── text_encoder.py
+│   ├── dataloader/           # Dataset and data loading logic
+│   │   ├── image_dataset.py
+│   │   └── text_corpus.py
+│   ├── inference/            # Inference pipeline
+│   │   ├── benchmark_retrieval.py
 │   │   ├── hybrid_predict.py
-│   │   ├── evaluate_retrieval.py
-│   │   └── predict.py
-│   ├── api/
-│   │   └──main.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── model.py
-│   │   └── nlp_model.py
-│   ├── training/
-│   │   ├── __init__.py
-│   │   ├── nlp_train.py
-│   │   ├── train_vanilla.py
-│   │   ├── lightning_model.py
-│   │   ├── train_lightning.py
-│   │   ├── train_triplet.py
-│   │   └──utils.py
-│   ├──ui/
-│   │   └──app.py
-├── test/
+│   │   └── infer.py
+│   ├── training/             # Training pipeline
+│   │   ├── baseline_trainer.py
+│   │   ├── contrastive_trainer.py
+│   │   ├── helpers.py
+│   │   ├── nlp_trainer.py
+│   │   ├── lightning_trainer.py
+│   │   └── trainer_core.py
+│   └── ui/                   # User interface
+│       └── app.py
+│
+├── test/                     # Unit and integration tests
 │   ├── test_dataset.py
 │   ├── test_inference.py
 │   ├── test_model.py
-│   └── test_nlp_dataset.py
-├── .env
+│   └── test_nlp_model.py
+│
+├── notebooks/                # Experimental Jupyter notebooks
+├── .env                      # Environment variables (not tracked)
 ├── .gitignore
-├── README.md
 ├── pytest.ini
-└── requirements.txt
+├── requirements.txt
+└── README.md
 ```
 
-## 🛠️ Technologies and Techniques Used
+##  Technologies and Techniques Used
 
 - **Architectures: Custom CNNs, ResNet18, MobileNetV3**
 - **Transfer Learning: Fine-tuning pre-trained ImageNet weights (requires_grad=True, low learning rate)**  
@@ -167,7 +168,7 @@ AI_DET_PROJECT/
 - **Imbalanced Data Solution: Class Weights (sklearn) for vision; data augmentation for NLP.** 
 - **Optimization: AdamW optimizer, Dynamic Learning Rate, Softmax Probability Scoring.**  
 
-## 🎯 Roadmap & Future Releases
+##  Roadmap & Future Releases
 
 **System & Pipeline Evolution**
 - [x] `v1.0.0`: Local training pipelines and Baseline setup.
@@ -188,7 +189,7 @@ AI_DET_PROJECT/
 - [ ] `Vision-Edge-v5`: Model compression (Quantization & ONNX export) for lightweight on-device mobile inference.
 
 
-## ⚙️ Installation 
+##  Installation 
 
 1. Clone the repo:
 
@@ -211,7 +212,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-# 🚀 Running the Project
+#  Running the Project
 
 The project now operates as a full-stack application. You need to run both the backend (API) and the frontend (UI) simultaneously.
 
@@ -226,7 +227,7 @@ Open a new terminal window (keep the API running) and execute:
 streamlit run src/ui/app.py
 ```
 
-### 🛠️ Developer Guide (Training from Scratch)
+###  Developer Guide (Training from Scratch)
 
 **1. Train Vision Model (PyTorch Lightning & Triplet Loss)**
 ```bash
@@ -243,17 +244,17 @@ python src/training/nlp_train.py
 
 
 
-# 🧠 Multimodal Fusion (Hybrid Diagnosis)
+#  Multimodal Fusion (Hybrid Diagnosis)
 ```bash
 python src/inference/hybrid_predict.py
 # Output Example:
-# 📸 Image Risk : %95.38
-# ✍️ Complaint Risk : %99.92
-# 🧠 HYBRID SCORE : %98.10
-# 🩺 DIAGNOSIS : ⚠️ RISKY (Consult a Specialist)
+#  Image Risk : %95.38
+#  Complaint Risk : %99.92
+#  HYBRID SCORE : %98.10
+#  DIAGNOSIS :  RISKY 
 ```
 
-### ✍️ NLP Inference (Symptom Analysis)
+###  NLP Inference (Symptom Analysis)
 You can test the NLP model directly from your Python code:
 
 ```python
@@ -261,7 +262,3 @@ from src.inference.predict import predict_symptom
 # Analyze patient complaint:
 result = predict_symptom("My lesion's color has darkened and it bleeds.")
 print(f"Output: {result} Risky")
-```
-
-
-

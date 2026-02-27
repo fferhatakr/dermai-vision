@@ -7,7 +7,7 @@ import io
 st.set_page_config(page_title="DermaScan AI", page_icon="🛡️", layout="centered")
 
 
-st.title("🛡️ DermaScan AI: Skin Analysis")
+st.title(" DermaScan AI: Skin Analysis")
 st.markdown("""
 This application analyzes skin lesions using artificial intelligence.
 **Please note:** This is not a diagnostic tool, but only a decision-support system.
@@ -24,7 +24,7 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Photo", width=250)
     
-    if st.button("🔍 Start Analysis"):
+    if st.button(" Start Analysis"):
         with st.spinner("AI is analyzing the image, please wait..."):
             try:
                 img_byte_arr = io.BytesIO()
@@ -38,16 +38,16 @@ if uploaded_file is not None:
                     prediction = result["prediction"]
                     confidence = result["confidence"]
 
-                    st.subheader("📊 Analysis Result")
+                    st.subheader(" Analysis Result")
                     
                     if prediction == "Risky":
-                        st.error("⚠️ **Detected Condition: RISKY**")
+                        st.error(" **Detected Condition: RISKY**")
                         st.warning(f"Confidence Score: %{confidence*100:.2f}")
                     else:
-                        st.success("✅ **Detected Condition: NORMAL**")
+                        st.success(" **Detected Condition: NORMAL**")
                         st.info(f"Confidence Score: %{confidence*100:.2f}")
                         
-                    st.info(f"💡 {result['message']}")
+                    st.info(f" {result['message']}")
                 else:
                     st.error("An error occurred while communicating with the API.")
                     

@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchmetrics import Accuracy
-from src.models.model import SkinCancerMobileNet
+from architectures.vision_model import SkinCancerMobileNet
 import torch.nn.functional as F
-from src.models.model import DermaScanModel
+from architectures.vision_model import DermaScanModel
 
 num_classes = 7
 

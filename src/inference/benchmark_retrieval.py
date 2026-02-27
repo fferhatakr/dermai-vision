@@ -9,10 +9,10 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.training.lightning_model import TripletLightning
+from src.training.trainer_core import TripletLightning
 
 def main():
-    print("🚀 Evaluation is starting...")
+    print(" Evaluation is starting...")
 
     
     with open("configs/train_config.yaml", "r", encoding="utf-8") as file:
@@ -20,7 +20,7 @@ def main():
 
     
     model_path = os.path.join(config['model']['checkpoint_dir'], config['model']['checkpoint_name'])
-    print(f"🧠 Loading Model: {model_path}")
+    print(f" Loading Model: {model_path}")
     
     
     model = TripletLightning.load_from_checkpoint(
@@ -42,7 +42,7 @@ def main():
     dataset = datasets.ImageFolder(root=config['data']['data_path'], transform=transform)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
-    print("🔍 Gallery (Database) is being extracted... This process may take a while.")
+    print(" Gallery (Database) is being extracted... This process may take a while.")
     all_embeddings = []
     all_labels = []
 
@@ -56,10 +56,10 @@ def main():
     all_embeddings = torch.cat(all_embeddings, dim=0)
     all_labels = torch.tensor(all_labels)
     
-    print(f"✅ Gallery Ready! Total Images: {all_embeddings.size(0)}, Vector Size: {all_embeddings.size(1)}")
+    print(f" Gallery Ready! Total Images: {all_embeddings.size(0)}, Vector Size: {all_embeddings.size(1)}")
 
 
-    print("🎯 Top-5 Success Rate Calculating...")
+    print(" Top-5 Success Rate Calculating...")
     
 
     all_embeddings_norm = F.normalize(all_embeddings, p=2, dim=1)
@@ -81,10 +81,10 @@ def main():
             correct_hits += 1
 
     top5_accuracy = (correct_hits / len(all_labels)) * 100
-    print(f"\n🏆 RESULT: When a new patient arrives, the model has a %{top5_accuracy:.2f} probability of correctly identifying the disease within the first 5 results!")
+    print(f"\n RESULT: When a new patient arrives, the model has a %{top5_accuracy:.2f} probability of correctly identifying the disease within the first 5 results!")
 
     torch.save(all_embeddings, "reference_embeddings.pt")
     torch.save(all_labels, "reference_labels.pt")
-    print("💾 The reference database API has been successfully saved to disk!")
+    print(" The reference database API has been successfully saved to disk!")
 if __name__ == "__main__":
     main()

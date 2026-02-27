@@ -1,5 +1,5 @@
 import torch
-from src.models.nlp_model import build_nlp_model
+from architectures.text_encoder import build_nlp_model
 from transformers import DistilBertTokenizer
 
 def test_nlp_model_output():
