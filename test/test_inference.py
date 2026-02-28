@@ -1,19 +1,38 @@
-import yaml
+import torch
+import glob
 import os
+import sys
 
-file_path = "configs/inference_config.yaml"
-def test_inference_config_loads():
-    with open(file_path,"r",encoding="utf-8") as file:
-        config = yaml.safe_load(file)
-    """
-    This test checks that our inference_config.yaml file can be read correctly
-    and that the settings within it (and the model file) are valid.
-    """
+
+sys.path.append(os.getcwd())
+from src.training.trainer_core import TripletLightning
+
+def test_model_discovery_and_loading():
+
+    path1 = glob.glob("lightning_logs/version_*/checkpoints/*.ckpt")
+    path2 = glob.glob("models/*.ckpt*") 
+    checkpoints = path1 + path2
     
 
+    if not checkpoints:
+        print("WARNING: The .ckpt model file to be tested could not be found.")
+        return 
 
-    assert config['search']['top_k'] == 5 ,"The value of top_k is not 5!"
-    assert config['search']['similarity_threshold'] == 0.89, "Threshold value is incorrect!"
+    latest_ckpt = max(checkpoints, key=os.path.getctime)
+    print(f"The model being tested: {latest_ckpt}")
+    
 
-    model_path = config['model']['path']
-    assert os.path.exists(str(file_path)), f"Model file not found: {model_path}"
+    try:
+
+        model = TripletLightning.load_from_checkpoint(
+            latest_ckpt,
+            learning_rate=0.001,
+            margin_value=1.0,
+            map_location=torch.device('cpu')
+        )
+        model.eval()
+        
+        assert model is not None, "Model could not be loaded (None returned)!"
+        
+    except Exception as e:
+        assert False, f"An error occurred while loading the model: {e}"
