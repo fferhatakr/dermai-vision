@@ -60,20 +60,23 @@ async def analyze_image( file:UploadFile = File(),text: str = Form(default="No s
     input_tensor = transforms_pipeline(image).unsqueeze(0)
 
     with torch.no_grad():
-        derma_model.eval()
-        embedding = derma_model(input_tensor)
-        distances = torch.cdist(embedding,ref_embeddings)
-        _ , indices = torch.topk(distances, k=5, largest=False)
+        
+        derma_model.eval() #Switch the model to test mode
+        embedding = derma_model(input_tensor) #Convert the image to a feature vector.
+        distances = torch.cdist(embedding,ref_embeddings) #Calculate the distance between them
+        _ , indices = torch.topk(distances, k=5, largest=False) #KNN Classifier
 
-        votes = ref_labels[indices]
+        votes = ref_labels[indices] #Classes of selected images
         
-        
+        #The most frequently repeated class is found.
         mode_result = torch.mode(votes)
         majority_vote = mode_result.values.item()
+
         is_risky = majority_vote > 0
         
-        confidence = (votes == majority_vote).sum().item() / 5.0
+        confidence = (votes == majority_vote).sum().item() / 5.0 #How many neighbours agree?
 
+        #Tokenise the text
         nlp_inputs = tokenizer(
         text,
         return_tensors="pt",
@@ -81,23 +84,34 @@ async def analyze_image( file:UploadFile = File(),text: str = Form(default="No s
         padding=True,
         max_length=128
         )
-        nlp_outputs = text_model(**nlp_inputs)
-        nlp_probs = F.softmax(nlp_outputs.logits,dim=1)
-        nlp_risk_score = nlp_probs[0][1].item()
+
+        nlp_outputs = text_model(**nlp_inputs) #Send the text to the model
+        nlp_probs = F.softmax(nlp_outputs.logits,dim=1) #Converts to probability
+
+        nlp_risk_score = nlp_probs[0][1].item() #You are taking the risk of being classified as high risk.
 
         img_risk_score = float(confidence) if is_risky else (1.0 - float(confidence))
-        hybrid_score = (img_risk_score * 0.6) + (nlp_risk_score * 0.4)
-        final_is_risky = hybrid_score > 0.5
 
-    heat_map = derma_model.generate_gradcam(input_tensor)
-    tensor_heatmap = heat_map.squeeze().cpu().detach().numpy()
-    extended_heatmap = cv2.resize(tensor_heatmap,(224,224))
+        hybrid_score = (img_risk_score * 0.6) + (nlp_risk_score * 0.4)#You are combining the image and text.
+
+        final_is_risky = hybrid_score > 0.5 #decision stage
+
+    heat_map = derma_model.generate_gradcam(input_tensor) #It determines which areas of the image it looks at to make its decision.
+    tensor_heatmap = heat_map.squeeze().cpu().detach().numpy() #Removing unnecessary dimensions + converting to numpy  
+    extended_heatmap = cv2.resize(tensor_heatmap,(224,224)) #
     blawhite_heatmap = (extended_heatmap*255)
     unmarked_heatmap = np.uint8(blawhite_heatmap)
 
-    color_heatmap = cv2.applyColorMap(unmarked_heatmap,cv2.COLORMAP_JET)
-    _,heatmap_png = cv2.imencode(".png",color_heatmap)
-    y = heatmap_png
+    #Creating a colour heatmap
+    color_heatmap = cv2.applyColorMap(
+        unmarked_heatmap,
+        cv2.COLORMAP_JET
+        ) 
+    
+    _,heatmap_png = cv2.imencode(".png",color_heatmap) #can be stored/sent like a file.
+    y = heatmap_png 
+
+    #Convert to ase64 (for the API)
     encode_heatmap = base64.b64encode(y)
     encoded_heatmap = encode_heatmap.decode('utf-8')
 

@@ -1,4 +1,4 @@
-#  DermAIVision - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
+#  DermAIVision - Dermatologist in Your Pocket (v2.4.0 - Full-Stack Web System)
 [![DermaScan AI CI/CD](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml)
 ![Recall@5](https://img.shields.io/badge/Recall@5-87%25-darkgreen)
 ![mAP](https://img.shields.io/badge/mAP-82%25-darkgreen)
@@ -16,7 +16,7 @@
 
 This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (MobileNetV3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
 
-##  What's New in v2.1.0: End-to-End Web System
+##  What's New in v2.3.0: End-to-End Web System
 The project is no longer just a set of training scripts. It is now a fully functional product:
 * **The Brain (KNN Retrieval):** Instead of standard classification, the model extracts 576-dimensional feature vectors (embeddings) from a new patient's image and compares them against a vast, pre-calculated database of diagnosed cases using K-Nearest Neighbors.
 * **The Backend (FastAPI):** A lightning-fast REST API (`uvicorn`) that handles image processing, tensor normalization, and real-time similarity matching.
@@ -55,7 +55,11 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v1.0.0` - Initial Prototype:** Manual training scripts, data augmentation, and basic PyTorch dataloaders established.
 * **`v1.1.0` - Lightning Refactor:** Training pipeline migrated to PyTorch Lightning. Added `ReduceLROnPlateau` for dynamic learning rate adjustments and modularized the codebase.
 * **`v2.0.0` - The CBIR Pivot:** Major architectural shift. Transitioned from standard classification to a Content-Based Image Retrieval (CBIR) pipeline using K-Nearest Neighbors (KNN) and Triplet Loss. 
-* **`v2.1.0` - Full-Stack Integration:** *(Current)* End-to-end system deployed. Built a FastAPI backend for real-time inference and L2 tensor normalization, coupled with an interactive Streamlit web interface.
+* **`v2.1.0` - Full-Stack Integration:**  End-to-end system deployed. Built a FastAPI backend for real-time inference and L2 tensor normalization, coupled with an interactive Streamlit web interface.
+* **`v2.2.0` - Multimodal Fusion: (New)** Integrated NLP capabilities to process patient anamnesis (text) alongside lesion images. Implemented a Late Fusion strategy to combine visual embeddings with textual features for a hybrid diagnostic score.
+* **`v2.3.0` - Explainable AI (XAI): (New)** Added an interpretability layer using Grad-CAM. The system now generates heatmaps to visualize the specific lesion regions influencing the model's retrieval decision, increasing clinical trust.
+* **`v2.4.0` - Engineering Excellence (CI/CD): (Current)** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
+
 
 ###  Model Registry & Experiments (AI Research)
 This section tracks the evolution of the AI models.
@@ -123,6 +127,10 @@ Industry-standard reproducibility is maintained by tracking all hyperparameters 
 
 ```text
 AI_DET_PROJECT/
+├── .github/
+│   └── workflows/
+│       └── python-app.yml
+│ 
 ├── checkpoints/              # Trained model weights (not tracked by Git)
 │   └── nlp_v1/               # NLP model checkpoints
 │
