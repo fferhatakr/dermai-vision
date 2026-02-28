@@ -1,4 +1,5 @@
 #  DermAIVision - Dermatologist in Your Pocket (v2.1.0 - Full-Stack Web System)
+[![DermaScan AI CI/CD](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml)
 ![Recall@5](https://img.shields.io/badge/Recall@5-87%25-darkgreen)
 ![mAP](https://img.shields.io/badge/mAP-82%25-darkgreen)
 ![Latency](https://img.shields.io/badge/Latency-45ms-blue)
@@ -35,9 +36,9 @@ graph LR
     G -->|Final Diagnosis Score| B
 ```
 ---
-```md
-### 🔍 Retrieval Instead of Classification
 
+###  Retrieval Instead of Classification
+```md
 Unlike traditional classifiers, the system does not output a fixed label directly.
 Instead, images are mapped into a learned embedding space where visually similar lesions
 are located closer together. Diagnosis is inferred by comparing the query embedding

@@ -28,7 +28,7 @@ jobs:
 
         pip install pytest torch torchvision lightning transformers opencv-python-headless
 
-    - name: Create Dummy Data & Model for CI (Hile Zamani)
+    - name: Create Dummy Data & Model for CI 
       run: |
 
         mkdir -p Data/processed
