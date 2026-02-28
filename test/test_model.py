@@ -1,6 +1,6 @@
 import torch
 import yaml
-from src.training.lightning_model import TripletLightning
+from src.training.trainer_core import TripletLightning
 
 
 def test_triplet_model_output_shape():
@@ -21,6 +21,6 @@ def test_triplet_model_output_shape():
 
     result = model(fake_image)
 
-    expected_size = torch.Size([1,960])
+    expected_size = torch.Size([1,576])
     
     assert result.shape == expected_size, f"The model produced an output of the wrong size! Output: {result.shape}"

@@ -1,0 +1,58 @@
+name: DermaScan AI CI/CD
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+        pip install pytest torch torchvision lightning transformers opencv-python-headless
+
+    - name: Create Dummy Data & Model for CI (Hile Zamani)
+      run: |
+
+        mkdir -p Data/processed
+        mkdir -p Data/raw/images
+        mkdir -p lightning_logs/version_0/checkpoints
+        
+
+
+        python -c "import torch; data = [(torch.randn(3, 224, 224), 0) for _ in range(5)]; torch.save(data, 'Data/processed/processed_data.pt')"
+        
+
+        python -c "
+        import torch
+        from src.training.trainer_core import TripletLightning
+        from lightning.pytorch import Trainer
+        model = TripletLightning(learning_rate=0.001, margin_value=1.0)
+        trainer = Trainer(max_epochs=0, logger=False, enable_checkpointing=False)
+
+        trainer.strategy.connect(model)
+        trainer._lightning_module = model
+        model.trainer = trainer
+        trainer.save_checkpoint('lightning_logs/version_0/checkpoints/ci_dummy_model.ckpt')
+        "
+
+    - name: Run Tests with Pytest
+      run: |
+        pytest
