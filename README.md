@@ -35,6 +35,14 @@ graph LR
     G -->|Final Diagnosis Score| B
 ```
 ---
+```md
+### 🔍 Retrieval Instead of Classification
+
+Unlike traditional classifiers, the system does not output a fixed label directly.
+Instead, images are mapped into a learned embedding space where visually similar lesions
+are located closer together. Diagnosis is inferred by comparing the query embedding
+against previously diagnosed reference cases.
+```
 
 ##  Engineering & Research Journey
 
@@ -115,7 +123,6 @@ Industry-standard reproducibility is maintained by tracking all hyperparameters 
 ```text
 AI_DET_PROJECT/
 ├── checkpoints/              # Trained model weights (not tracked by Git)
-│   ├── dermatolog/           # Dermatology model checkpoints
 │   └── nlp_v1/               # NLP model checkpoints
 │
 ├── configs/                  # Configuration files
@@ -123,7 +130,7 @@ AI_DET_PROJECT/
 │   └── train_config.yaml
 │
 ├── Data/                     # Dataset files (not tracked by Git)
-│   ├── artifacts/            # Reference embeddings and labels (tracked)
+│   ├── artifacts/            # Generated reference embeddings (not tracked by Git)
 │   ├── images/               # Raw images
 │   └── metadata/             # Dataset metadata
 │
@@ -143,20 +150,22 @@ AI_DET_PROJECT/
 │   ├── training/             # Training pipeline
 │   │   ├── baseline_trainer.py
 │   │   ├── contrastive_trainer.py
-│   │   ├── helpers.py
 │   │   ├── nlp_trainer.py
 │   │   ├── lightning_trainer.py
 │   │   └── trainer_core.py
-│   └── ui/                   # User interface
-│       └── app.py
-│
+│   ├── ui/                   # User interface
+│   │    └── app.py
+│   │ 
+│   ├── utils/
+│   │   ├── create_embeddings.py
+│   │   └── helpers.py
+│   │ 
 ├── test/                     # Unit and integration tests
 │   ├── test_dataset.py
 │   ├── test_inference.py
 │   ├── test_model.py
 │   └── test_nlp_model.py
 │
-├── notebooks/                # Experimental Jupyter notebooks
 ├── .env                      # Environment variables (not tracked)
 ├── .gitignore
 ├── pytest.ini
@@ -215,6 +224,15 @@ Open a new terminal window (keep the API running) and execute:
 streamlit run src/ui/app.py
 ```
 
+## 🔹 Embedding Database Initialization (Required)
+
+This system uses a reference embedding database for similarity search.
+After training a vision model, embeddings must be generated once before running inference.
+
+```bash
+python src/utils/create_embeddings.py
+```
+
 ###  Developer Guide (Training from Scratch)
 
 **1. Train Vision Model (PyTorch Lightning & Triplet Loss)**
@@ -250,3 +268,4 @@ from src.inference.predict import predict_symptom
 # Analyze patient complaint:
 result = predict_symptom("My lesion's color has darkened and it bleeds.")
 print(f"Output: {result} Risky")
+```

@@ -9,7 +9,7 @@ import sys
 import os 
 from dataloader.image_dataset import get_data_loaders
 from architectures.vision_model import SkinCancerMobileNet
-from training.helpers import matrix_draw
+from utils.helpers import matrix_draw
 
 #It shows the file path on our computer. You may not need to do it.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))) 

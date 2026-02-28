@@ -1,18 +1,43 @@
-# --- Data and Model Weights (NEVER TO BE REMOVED) ---
+
+# DATA & MODEL FILES (GENERATED / LARGE FILES)
+
+# Raw & processed datasets
 Data/images/
 Data/metadata/
+Data/processed/
+Data/artifacts/
+
+# Training outputs
 checkpoints/
 lightning_logs/
 
-# --- Python and Environment Files ---
+# Model weights
+models/
+*.ckpt
+*.pt
+*.pth
+
+# PYTHON & ENVIRONMENT
+
 venv/
 .env
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-.DS_Store
+*.pyo
+*.pyd
 
-# --- Notebooks ---
-notebooks/v3_dermatolog.ipynb
-notebooks/v2_dermatolog.ipynb
-notebooks/v1_dermatolog.ipynb
+# Python cache folders
+.pytest_cache/
+.mypy_cache/
+
+# NOTEBOOK TEMP FILES
+
+.ipynb_checkpoints/
+
+# OS & EDITOR FILES
+
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
