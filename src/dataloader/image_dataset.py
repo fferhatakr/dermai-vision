@@ -14,9 +14,11 @@ def get_data_loaders(data_path, batch_size=32):
     #We refine the training set through specific stages to make it understandable for our model.
     train_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
+        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5))], p=0.2),
+        transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.2),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(degrees=20), 
-        transforms.ColorJitter(),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean,std=std)
     ])

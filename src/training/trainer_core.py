@@ -75,6 +75,24 @@ class TripletLightning(pl.LightningModule):
             margin=margin_value,
             p=2
             )
+        
+        self.activations = None
+        self.gradients = None
+
+        self.model.backbone.register_forward_hook(self.save_activations)
+        self.model.backbone.register_full_backward_hook(self.backward_gradients)
+
+
+    def save_activations(self,module,input,output):
+
+        self.activations = output
+
+    def backward_gradients(self,module, grad_input, grad_output):
+
+        self.gradients = grad_output[0]
+
+
+
 
 
     def forward(self,x):
@@ -117,3 +135,22 @@ class TripletLightning(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         return optimizer
+    
+
+    def generate_gradcam(self, input_image):
+        vector = self.forward(input_image) 
+        total_energy = vector.sum() 
+        total_energy.backward() 
+
+        maps = self.activations 
+
+        derivative = self.gradients  
+        weights = derivative.mean(dim=[2,3], keepdim=True)
+        multiplication_table = maps * weights
+        
+        single_map = multiplication_table.sum(dim=1, keepdim=True)
+        positive_map = F.relu(single_map)
+        normal_map = positive_map / positive_map.max()
+
+    
+        return normal_map

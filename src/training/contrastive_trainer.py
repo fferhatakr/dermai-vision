@@ -1,9 +1,8 @@
-# Import the necessary libraries 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from src.training.trainer_core import TripletLightning
 from torch.utils.data import DataLoader
-from dataloader.image_dataset import TripletDermaDataset
+from src.dataloader.image_dataset import TripletDermaDataset
 import yaml
 
 pl.seed_everything(42, workers=True)
@@ -12,7 +11,7 @@ pl.seed_everything(42, workers=True)
 
 
 def main():
-    with open("configs/train_config.yml","r",encoding = "utf-8") as file:
+    with open("configs/train_config.yaml","r",encoding = "utf-8") as file:
         config = yaml.safe_load(file)
 
     EPOCH_NUMBER = config['training']['epoch_number']
@@ -22,17 +21,23 @@ def main():
 
 
     
-    print("Data is loading...")
+    
     triplet_dataset = TripletDermaDataset(DATA_PATH)
-    train_loader = DataLoader(triplet_dataset,batch_size=BATCH_SIZE,shuffle=True)
+    train_loader = DataLoader(
+        triplet_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True
+        )
 
-    print(" Lightning Model Initializing...") 
+    
     triplet_model = TripletLightning(
         margin_value=config['model']['margin_value'],
         learning_rate = config['training']['learning_rate']
     )
     
-    print(" Setting up Best Checkpoint...")
+    
 
 
     checkpoint_callback=ModelCheckpoint(
@@ -42,10 +47,10 @@ def main():
         mode="min",
     )
 
-    print(" Trainer is starting the engines!")
+    
     trainer = pl.Trainer(
         max_epochs=EPOCH_NUMBER,
-        accelerator="auto",
+        accelerator="gpu",
         devices=1,
         callbacks=[checkpoint_callback],
     )
