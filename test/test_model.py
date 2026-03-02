@@ -21,6 +21,6 @@ def test_triplet_model_output_shape():
 
     result = model(fake_image)
 
-    expected_size = torch.Size([1,576])
+    expected_size = torch.Size([1,960])
     
     assert result.shape == expected_size, f"The model produced an output of the wrong size! Output: {result.shape}"

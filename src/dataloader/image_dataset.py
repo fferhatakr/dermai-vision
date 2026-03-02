@@ -72,43 +72,50 @@ def get_data_loaders(data_path, batch_size=32):
 
 
 class TripletDermaDataset(Dataset):
-        def __init__(self,data_path):
-            self.data = data_path
+    def __init__(self, data_path, is_train=True):
+        self.data = data_path
+        
+        if is_train:
+            self.transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5))], p=0.2),
+                transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.2),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomRotation(degrees=20),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+        else:
+            #
             self.transform = transforms.Compose([
                 transforms.Resize((224, 224)),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
-            self.index = torchvision.datasets.ImageFolder(self.data,transform=self.transform)
-            
-            self.label_to_indices=defaultdict(list) 
 
-            for i,label in enumerate(self.index.targets):
-                self.label_to_indices[label].append(i)
-            
-            
-            self.all_classes = list(self.label_to_indices.keys())
+        self.index = torchvision.datasets.ImageFolder(self.data, transform=self.transform)
+        self.label_to_indices = defaultdict(list) 
+        for i, label in enumerate(self.index.targets):
+            self.label_to_indices[label].append(i)
+        self.all_classes = list(self.label_to_indices.keys())
 
+    def __len__(self):
+        return len(self.index)
 
-        def __len__(self):
-            
-            return len(self.index)
+    def __getitem__(self, idx):
+        anchor_img, anchor_label = self.index[idx]
+        positive_list = self.label_to_indices[anchor_label]
+        positive_idx = random.choice(positive_list)
+        positive_img, _ = self.index[positive_idx]
 
-        def __getitem__(self,idx):
-            anchor_img , anchor_label = self.index[idx]
-            positive_list = self.label_to_indices[anchor_label]
-            positive_idx = random.choice(positive_list)
-            positive_img,_ = self.index[positive_idx]
+        negative_classes = self.all_classes.copy()
+        negative_classes.remove(anchor_label)
+        random_negative_class = random.choice(negative_classes)
+        negative_list = self.label_to_indices[random_negative_class]
+        negative_idx = random.choice(negative_list)
+        negative_img, _ = self.index[negative_idx]
 
-            negative_classes = self.all_classes.copy()
-            negative_classes.remove(anchor_label)
-            random_negative_class = random.choice(negative_classes)
-            negative_list = self.label_to_indices[random_negative_class]
-
-            negative_idx = random.choice(negative_list)
-            negative_img,_ = self.index[negative_idx]
-
-            return anchor_img,positive_img,negative_img
-
+        return anchor_img, positive_img, negative_img
 
             

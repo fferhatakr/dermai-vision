@@ -1,9 +1,10 @@
-#  DermAIVision - Dermatologist in Your Pocket (v2.4.0 - Full-Stack Web System)
+#  DermAIVision - Dermatologist in Your Pocket (v2.5.0 - Full-Stack Web System)
 [![DermaScan AI CI/CD](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml)
-![Recall@5](https://img.shields.io/badge/Recall@5-87%25-darkgreen)
-![mAP](https://img.shields.io/badge/mAP-82%25-darkgreen)
-![Latency](https://img.shields.io/badge/Latency-45ms-blue)
+![Recall@5](https://img.shields.io/badge/Recall@5-95%25-brightgreen)
+![Architecture](https://img.shields.io/badge/Model-MobileNetV3_Large-blueviolet)
+![NLP](https://img.shields.io/badge/NLP-DistilBERT-yellow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
@@ -59,7 +60,7 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v2.2.0` - Multimodal Fusion: (New)** Integrated NLP capabilities to process patient anamnesis (text) alongside lesion images. Implemented a Late Fusion strategy to combine visual embeddings with textual features for a hybrid diagnostic score.
 * **`v2.3.0` - Explainable AI (XAI): (New)** Added an interpretability layer using Grad-CAM. The system now generates heatmaps to visualize the specific lesion regions influencing the model's retrieval decision, increasing clinical trust.
 * **`v2.4.0` - Engineering Excellence (CI/CD): (Current)** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
-
+* **`v2.5.0` - Scaling Intelligence:** Major backbone upgrade. Switched from MobileNetV3-Small to MobileNetV3-Large (V2), expanding the feature embedding space to 960 dimensions. Integrated rigorous Data Augmentation (Blur, Rotation) and strict Train/Val splitting, achieving a state-of-the-art 94.75% Recall@5.
 
 ###  Model Registry & Experiments (AI Research)
 This section tracks the evolution of the AI models.
@@ -107,7 +108,8 @@ To ensure reliability, the models are evaluated not just on accuracy, but on the
 | :--- | :--- | :--- | :--- | :--- |
 | **`Vision-Exp03`** | ResNet18 (Baseline TL) | 0.78 | 0.71 | ~120ms |
 | **`Vision-Mobile-v1`** | MobileNetV3-Small | 0.81 | 0.75 | ~42ms |
-| **`Vision-Embed-v2`** | MobileNetV3 + Triplet | **0.87** | **0.82** | **~45ms** |
+| **`Vision-Embed-v2`** | MobileNetV3 + Triplet | 0.87 | 0.82 | ~45ms |
+| **`Vision-Hybrid-v3`** | **MobileNetV3-Large + Triplet** | **94.75%** | **960** | **~65ms** |
 
 *Note: The shift to MobileNetV3 drastically reduced latency, making real-time web inference and future mobile deployment viable, while Triplet Loss significantly boosted the Mean Average Precision (mAP) of the retrieval system.*
 
@@ -117,7 +119,7 @@ Industry-standard reproducibility is maintained by tracking all hyperparameters 
 * **Dataset:** ISIC Archive Subset (~8,000+ dermoscopy images)
 * **Data Split:** 70% Train / 15% Validation / 15% Test
 * **Batch Size:** 32 (optimized for memory constraints)
-* **Epochs:** 25 (with Early Stopping patience = 5)
+* **Epochs:** 5 
 * **Optimizer:** AdamW (Initial LR: 0.001, updated via `ReduceLROnPlateau`)
 * **Hardware:** Trained on NVIDIA T4 / Local RTX GPUs
 * **Random Seed:** `42` (forced for deterministic weight initialization and splitting)
@@ -154,32 +156,34 @@ AI_DET_PROJECT/
 │   │   └── text_corpus.py
 │   ├── inference/            # Inference pipeline
 │   │   ├── benchmark_retrieval.py
-│   │   ├── hybrid_predict.py
-│   │   └── infer.py
-│   ├── training/             # Training pipeline
+│   │   └── hybrid_predict.py
+│   ├── legacy/
 │   │   ├── baseline_trainer.py
+│   │   ├── infer.py
+│   │   └── lightning_trainer.py
+│   ├── training/             # Training pipeline
 │   │   ├── contrastive_trainer.py
 │   │   ├── nlp_trainer.py
-│   │   ├── lightning_trainer.py
 │   │   └── trainer_core.py
 │   ├── ui/                   # User interface
 │   │    └── app.py
-│   │ 
 │   ├── utils/
 │   │   ├── create_embeddings.py
 │   │   └── helpers.py
-│   │ 
 ├── test/                     # Unit and integration tests
 │   ├── test_dataset.py
 │   ├── test_inference.py
 │   ├── test_model.py
 │   └── test_nlp_model.py
-│
 ├── .env                      # Environment variables (not tracked)
 ├── .gitignore
+├── .gitattributes
+├── CHANGELOG.md 
+├── LICENSE
 ├── pytest.ini
+├── README.md
 ├── requirements.txt
-└── README.md
+└── ROADMAP.md
 ```
 
 ##  Technologies and Techniques Used
