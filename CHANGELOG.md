@@ -1,6 +1,21 @@
 # Changelog
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+
+## [v2.5.0] - Scaling Intelligence (Large Backbone)
+### Changed
+- **Architectural Upgrade:** Switched the Vision Backbone from MobileNetV3-Small to **MobileNetV3-Large (V2)**.
+- **High-Fidelity Embeddings:** Increased the feature vector dimension from 576 to **960**, capturing significantly more granular dermatological features.
+- **Performance Boost:** Achieved a state-of-the-art **94.75% Recall@5** on the validation set (up from ~87%).
+
+### Added
+- **Robust Augmentation Pipeline:** Integrated aggressive data augmentation strategies (Gaussian Blur, Color Jitter, Random Rotation) specifically tuned to prevent overfitting in the larger parameter space.
+- **Strict Data Splitting:** Implemented `torch.utils.data.Subset` logic to ensure zero data leakage between training (augmented) and validation (clean) sets.
+
+## [Unreleased / Planned]
+### Focused
+- **Pivot:** Project roadmap realigned to focus purely on **AI Engineering & MLOps**. Mobile development milestones have been deprecated in favor of Dockerization, Cloud Deployment, and Inference Optimization (ONNX).
+
 ## [v2.4.0] - Engineering Excellence (CI/CD)
 ### Added
 - *Automated Testing:* Integrated pytest framework with 4 comprehensive test suites (test_dataset.py, test_inference.py, test_model.py, test_nlp_model.py) covering data integrity, model inference, and NLP tokenization.

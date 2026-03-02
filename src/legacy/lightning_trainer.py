@@ -4,7 +4,7 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sklearn.utils.class_weight import compute_class_weight
-from dataloader.image_dataset import get_data_loaders
+from src.dataloader.image_dataset import get_data_loaders
 from src.training.trainer_core import DermatologLightning 
 
 
@@ -56,10 +56,6 @@ def main():
         mode="max",
     )
 
-    # PyTorch Lightning Trainer
-    # - Cihaz yerleştirmeyi yönetir (CPU/GPU)
-    # - Eğitim döngüsünü yönetir
-    # - Geri aramaları otomatik olarak entegre eder
     print(" Trainer is starting the engines!")
     trainer = pl.Trainer(
         max_epochs=EPOCH_NUMBER,
@@ -68,9 +64,7 @@ def main():
         callbacks=[checkpoint_callback],
     )
 
-    # Trainer, modeli train ve validation dataloader'ları ile eğitmeye başlar
     trainer.fit(model=lightning_model,train_dataloaders=train_loader,val_dataloaders=val_loader)
 
-# Dosya direkt çalıştırıldığında main() fonksiyonunu başlatır
 if __name__ == "__main__":
     main()

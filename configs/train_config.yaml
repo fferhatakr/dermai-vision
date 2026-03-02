@@ -1,15 +1,15 @@
 data:
   data_path: "Data/images/all_data" 
-  batch_size: 32
+  batch_size: 16
 
 training:
-  epoch_number: 25
+  epoch_number: 6
   learning_rate: 0.00001
   
 model:
   checkpoint_dir: "models/"
-  checkpoint_name: "best_lightning_model-v2.ckpt"
-  margin_value: 1.0
+  checkpoint_name: "best_lightning_model-v4.ckpt"
+  margin_value: 0.5
   architectural : "mobilenet_v3"
   
 

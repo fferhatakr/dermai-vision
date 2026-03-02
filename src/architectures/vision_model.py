@@ -130,7 +130,7 @@ class  DermaScanModel(nn.Module):
         super().__init__()
 
 
-        pretrained = torchvision.models.mobilenet_v3_small(weights='IMAGENET1K_V1')
+        pretrained = torchvision.models.mobilenet_v3_large(weights='IMAGENET1K_V1')
         self.backbone = pretrained.features #We are using the features of the pre-trained model.
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1,1)),
@@ -143,4 +143,35 @@ class  DermaScanModel(nn.Module):
     def forward(self, x):
         x = self.backbone(x)
         x = self.classifier(x)
+        return x
+    
+
+#Most recently used class
+class DermaScanModelV2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+
+        self.backbone = torchvision.models.mobilenet_v3_large(weights='IMAGENET1K_V1').features
+
+        with torch.no_grad():
+            dummy_input = torch.randn(1, 3, 224, 224)
+            features = self.backbone(dummy_input)
+            in_features = features.shape[1] 
+        self.gap = nn.AdaptiveAvgPool2d((1,1))
+        self.flatten = nn.Flatten()
+        self.classifier = nn.Sequential(
+
+            nn.Linear(in_features, 512),
+            nn.BatchNorm1d(512), 
+            nn.ReLU(),
+            nn.Dropout(0.5),     
+            nn.Linear(512, 7)
+        )
+
+    def forward(self, x):
+        x = self.backbone(x) 
+        x = self.gap(x)      
+        x = self.flatten(x)  
+        x = self.classifier(x) 
         return x

@@ -16,7 +16,7 @@ import glob
 import sys  
 from src.training.trainer_core import TripletLightning
 sys.path.append(os.getcwd()) 
-
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 
@@ -27,27 +27,44 @@ def load_ai_model():
     checkpoints = file_path + file_path2
     
     if not checkpoints:
-        
         raise FileNotFoundError("ERROR: No .ckpt model file found!")
     
     latest_ckpt = max(checkpoints, key=os.path.getctime)
     print(f" Uploaded Model: {latest_ckpt}")
 
-    model = TripletLightning.load_from_checkpoint(
+    vision_model = TripletLightning.load_from_checkpoint(
         checkpoint_path=latest_ckpt,
         margin_value=1.0,      
         learning_rate=0.001,   
         map_location=torch.device('cpu') 
     )
-    model.eval()
-    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    text_model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
+    vision_model.to(DEVICE)
+    vision_model.eval()
 
-    return model,tokenizer ,text_model
+    nlp_model_path = "checkpoints/nlp_v1"
+    if not os.path.exists(nlp_model_path):
+         raise FileNotFoundError(f" Error: '{nlp_model_path}'")
+
+    tokenizer = DistilBertTokenizer.from_pretrained(nlp_model_path)
+    text_model = DistilBertForSequenceClassification.from_pretrained(nlp_model_path)
+
+    text_model.to(DEVICE)
+    text_model.eval()
+
+    return vision_model,tokenizer ,text_model
+
+
+derma_model,tokenizer,text_model, = load_ai_model()
+path = "Data/artifacts/reference_embeddings.pt"
+path2= "Data/artifacts/reference_labels.pt"
+ref_embeddings = torch.load(path, map_location=DEVICE)
+ref_labels = torch.load(path2, map_location=DEVICE)
 
 app = FastAPI(title="DermaScan AI API")
+
 @app.post("/analyze")
 async def analyze_image( file:UploadFile = File(),text: str = Form(default="No symptoms provided")):
+    #Image Processing
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
@@ -57,11 +74,10 @@ async def analyze_image( file:UploadFile = File(),text: str = Form(default="No s
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    input_tensor = transforms_pipeline(image).unsqueeze(0)
+    input_tensor = transforms_pipeline(image).unsqueeze(0).to(DEVICE)
 
     with torch.no_grad():
-        
-        derma_model.eval() #Switch the model to test mode
+        # Image Prediction
         embedding = derma_model(input_tensor) #Convert the image to a feature vector.
         distances = torch.cdist(embedding,ref_embeddings) #Calculate the distance between them
         _ , indices = torch.topk(distances, k=5, largest=False) #KNN Classifier
@@ -83,18 +99,16 @@ async def analyze_image( file:UploadFile = File(),text: str = Form(default="No s
         truncation=True,
         padding=True,
         max_length=128
-        )
+        ).to(DEVICE)
 
         nlp_outputs = text_model(**nlp_inputs) #Send the text to the model
         nlp_probs = F.softmax(nlp_outputs.logits,dim=1) #Converts to probability
-
-        nlp_risk_score = nlp_probs[0][1].item() #You are taking the risk of being classified as high risk.
-
+        nlp_risk_score = nlp_probs[0][0].item() #You are taking the risk of being classified as high risk.
         img_risk_score = float(confidence) if is_risky else (1.0 - float(confidence))
 
         hybrid_score = (img_risk_score * 0.6) + (nlp_risk_score * 0.4)#You are combining the image and text.
-
         final_is_risky = hybrid_score > 0.5 #decision stage
+
 
     heat_map = derma_model.generate_gradcam(input_tensor) #It determines which areas of the image it looks at to make its decision.
     tensor_heatmap = heat_map.squeeze().cpu().detach().numpy() #Removing unnecessary dimensions + converting to numpy  
@@ -115,24 +129,18 @@ async def analyze_image( file:UploadFile = File(),text: str = Form(default="No s
     encode_heatmap = base64.b64encode(y)
     encoded_heatmap = encode_heatmap.decode('utf-8')
 
-
-
-       
-        
-
     return {
         "status": "success",
         "prediction": "Risky" if final_is_risky else "Normal",
         "confidence": float(hybrid_score), 
+        "scores": {
+            "image": float(img_risk_score),
+            "text": float(nlp_risk_score)
+        },
         "message": f"Hybrid Analysis Complete. (Image Score: {img_risk_score:.2f}, Text Score: {nlp_risk_score:.2f})",
         "heatmap_base64": encoded_heatmap
     }
 
-derma_model,tokenizer,text_model, = load_ai_model()
-path = "Data/artifacts/reference_embeddings.pt"
-path2= "Data/artifacts/reference_labels.pt"
-ref_embeddings = torch.load(path, map_location="cpu")
-ref_labels = torch.load(path2, map_location="cpu")
 
 @app.get("/")
 def  application():

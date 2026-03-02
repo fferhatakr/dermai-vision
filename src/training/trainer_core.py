@@ -7,6 +7,7 @@ from torchmetrics import Accuracy
 from src.architectures.vision_model import SkinCancerMobileNet
 import torch.nn.functional as F
 from src.architectures.vision_model import DermaScanModel
+from src.architectures.vision_model import DermaScanModelV2
 
 num_classes = 7
 
@@ -70,7 +71,7 @@ class TripletLightning(pl.LightningModule):
     def __init__(self,learning_rate,margin_value): 
         super().__init__()
         self.learning_rate = learning_rate
-        self.model=DermaScanModel() 
+        self.model=DermaScanModelV2() 
         self.criterion = nn.TripletMarginLoss(
             margin=margin_value,
             p=2
