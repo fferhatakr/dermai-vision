@@ -17,11 +17,13 @@
 
 This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (MobileNetV3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
 
-##  What's New in v2.3.0: End-to-End Web System
-The project is no longer just a set of training scripts. It is now a fully functional product:
-* **The Brain (KNN Retrieval):** Instead of standard classification, the model extracts 576-dimensional feature vectors (embeddings) from a new patient's image and compares them against a vast, pre-calculated database of diagnosed cases using K-Nearest Neighbors.
-* **The Backend (FastAPI):** A lightning-fast REST API (`uvicorn`) that handles image processing, tensor normalization, and real-time similarity matching.
-* **The Frontend (Streamlit):** An interactive, user-friendly web interface where users can upload dermoscopy images and receive instant, confidence-based diagnostic feedback.
+##  What's New in v2.5.0: Scaling Intelligence & Hybrid Fusion
+The project has evolved from a lightweight mobile experiment to a high-performance clinical search engine:
+
+* **The Brain (MobileNetV3-Large):** Upgraded the vision backbone to the "Large" variant, expanding the embedding space to **960 dimensions** for capturing granular dermatological features.
+* **Hybrid Decision Support:** Implemented a weighted voting mechanism (60% Vision + 40% NLP) that combines lesion analysis with patient symptoms (DistilBERT) for a holistic risk score.
+* **State-of-the-Art Performance:** Achieved a **94.75% Recall@5**, meaning the system successfully retrieves the correct diagnosis in the top-5 results for nearly 95% of cases.
+
 
 ##  System Architecture Flow
 
