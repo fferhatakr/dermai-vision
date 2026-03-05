@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from src.dataloader.text_corpus import SymptomDataset
 from transformers import DistilBertTokenizer
 from transformers import DataCollatorWithPadding
-from architectures.text_encoder import build_nlp_model
+from src.architectures.text_encoder import build_nlp_model
 from torch.optim import AdamW
 import torch
 import torch.nn.functional as F

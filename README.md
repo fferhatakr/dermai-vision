@@ -1,4 +1,4 @@
-#  DermAIVision - Dermatologist in Your Pocket (v2.5.0 - Full-Stack Web System)
+#  DermAIVision - Dermatologist in Your Pocket (v2.6.0 - Full-Stack Web System)
 [![DermaScan AI CI/CD](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml)
 ![Recall@5](https://img.shields.io/badge/Recall@5-95%25-brightgreen)
 ![Architecture](https://img.shields.io/badge/Model-MobileNetV3_Large-blueviolet)
@@ -17,12 +17,11 @@
 
 This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (MobileNetV3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
 
-##  What's New in v2.5.0: Scaling Intelligence & Hybrid Fusion
+##  What's New in v2.6.0: Inference Optimization & Edge Readiness (Current)
 The project has evolved from a lightweight mobile experiment to a high-performance clinical search engine:
 
-* **The Brain (MobileNetV3-Large):** Upgraded the vision backbone to the "Large" variant, expanding the embedding space to **960 dimensions** for capturing granular dermatological features.
-* **Hybrid Decision Support:** Implemented a weighted voting mechanism (60% Vision + 40% NLP) that combines lesion analysis with patient symptoms (DistilBERT) for a holistic risk score.
-* **State-of-the-Art Performance:** Achieved a **94.75% Recall@5**, meaning the system successfully retrieves the correct diagnosis in the top-5 results for nearly 95% of cases.
+* **ONNX Runtime Integration:** Exported the MobileNetV3-Large backbone to ONNX format, reducing inference latency by ~40% on CPU/Edge devices.
+* **Dual-Engine Support:** Users can now toggle between "Deep Analysis" (PyTorch with Grad-CAM) and "Fast Mode" (ONNX for high-speed screening).
 
 
 ##  System Architecture Flow
@@ -61,8 +60,9 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v2.1.0` - Full-Stack Integration:**  End-to-end system deployed. Built a FastAPI backend for real-time inference and L2 tensor normalization, coupled with an interactive Streamlit web interface.
 * **`v2.2.0` - Multimodal Fusion: (New)** Integrated NLP capabilities to process patient anamnesis (text) alongside lesion images. Implemented a Late Fusion strategy to combine visual embeddings with textual features for a hybrid diagnostic score.
 * **`v2.3.0` - Explainable AI (XAI): (New)** Added an interpretability layer using Grad-CAM. The system now generates heatmaps to visualize the specific lesion regions influencing the model's retrieval decision, increasing clinical trust.
-* **`v2.4.0` - Engineering Excellence (CI/CD): (Current)** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
+* **`v2.4.0` - Engineering Excellence (CI/CD):** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
 * **`v2.5.0` - Scaling Intelligence:** Major backbone upgrade. Switched from MobileNetV3-Small to MobileNetV3-Large (V2), expanding the feature embedding space to 960 dimensions. Integrated rigorous Data Augmentation (Blur, Rotation) and strict Train/Val splitting, achieving a state-of-the-art 94.75% Recall@5.
+* **`v2.6.0` - Inference Optimization and Dual-Engine Support (Current)** Integrated ONNX Runtime to optimize MobileNetV3-Large performance, significantly reducing inference latency for CPU-based local deployment. Developed a dual-engine architecture in the UI that supports switching between high-speed screening and explainable Grad-CAM analysis.
 
 ###  Model Registry & Experiments (AI Research)
 This section tracks the evolution of the AI models.
@@ -73,7 +73,9 @@ This section tracks the evolution of the AI models.
 | **`Vision-Exp02`** | Custom CNN | Class Weights | Overfitting broken; diagnostic blindness for rare classes eliminated. |
 | **`Vision-Exp03`** | ResNet18 | Transfer Learning | Pre-trained ImageNet weights integrated; large jump in feature extraction. |
 | **`Vision-Mobile-v1`**| MobileNetV3-Small| Mobile Optimization | Lightweight architecture selected for future iOS/Android on-device inference. |
-| **`Vision-Embed-v2`** | MobileNetV3 + Triplet| Metric Learning | **Current Production Model.** Optimized to map visually similar conditions closer together in a 576-dimensional embedding space. |
+| **`Vision-Embed-v2`** | MobileNetV3 + Triplet| Metric Learning |  Optimized to map visually similar conditions closer together in a 576-dimensional embedding space. |
+| **`Vision-Embed-v3`** | MobileNetV3 |Triplet + ONNX  | **Current Production Model.** Latest State-of-the-art. Features 960-dim embeddings. Optimized via ONNX Runtime for 40% faster inference on M1/CPU. |
+
 
 ###  NLP Model Registry (Multimodal Expansion)
 | Model ID | Architecture | Capability | Note |
@@ -100,6 +102,7 @@ Since the system is a Content-Based Image Retrieval (CBIR) engine, standard clas
 * **Top-1 Accuracy:** Does the single closest retrieved embedding share the exact same diagnosis?
 * **Recall@5 (Top-5 Accuracy):** Is the correct diagnosis present within the 5 nearest neighbors?
 * **Mean Average Precision (mAP):** Measures the overall clustering quality and ranking order of the retrieved cases in the vector space.
+* **Inference Latency (ms):** It measures the time taken from image upload to hybrid diagnosis result in milliseconds. This metric is used to demonstrate the speed increase (e.g. 40% improvement) provided by ONNX Runtime optimisation compared to a PyTorch-based model.
 
 
 
@@ -111,7 +114,8 @@ To ensure reliability, the models are evaluated not just on accuracy, but on the
 | **`Vision-Exp03`** | ResNet18 (Baseline TL) | 0.78 | 0.71 | ~120ms |
 | **`Vision-Mobile-v1`** | MobileNetV3-Small | 0.81 | 0.75 | ~42ms |
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet | 0.87 | 0.82 | ~45ms |
-| **`Vision-Hybrid-v3`** | **MobileNetV3-Large + Triplet** | **94.75%** | **960** | **~65ms** |
+| **`Vision-Hybrid-v3`** | MobileNetV3-Large + Triplet | 94.75% | 960 | ~65ms |
+| **`Vision-Fast-v1`** | **MobileNetV3-Large + ONNX** | **94.75%** | **960** | **~38ms** |
 
 *Note: The shift to MobileNetV3 drastically reduced latency, making real-time web inference and future mobile deployment viable, while Triplet Loss significantly boosted the Mean Average Precision (mAP) of the retrieval system.*
 
@@ -134,9 +138,6 @@ AI_DET_PROJECT/
 ├── .github/
 │   └── workflows/
 │       └── python-app.yml
-│ 
-├── checkpoints/              # Trained model weights (not tracked by Git)
-│   └── nlp_v1/               # NLP model checkpoints
 │
 ├── configs/                  # Configuration files
 │   ├── inference_config.yaml
@@ -146,6 +147,8 @@ AI_DET_PROJECT/
 │   ├── artifacts/            # Generated reference embeddings (not tracked by Git)
 │   ├── images/               # Raw images
 │   └── metadata/             # Dataset metadata
+├── Scripts/ 
+│   └── export_to_onnx.py 
 │
 ├── src/                      # Source code
 │   ├── api/                  # API entry point

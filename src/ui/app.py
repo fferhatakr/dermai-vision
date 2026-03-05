@@ -6,42 +6,61 @@ import base64
 import cv2
 import numpy as np
 
+st.set_page_config(page_title="DermaScan AI", page_icon="🛡️", layout="wide") 
 
-
-st.set_page_config(page_title="DermaScan AI", page_icon="🛡️", layout="centered")
-
-
-st.title(" DermaScan AI: Skin Analysis")
 st.markdown("""
-This application analyzes skin lesions using artificial intelligence.
-**Please note:** This is not a diagnostic tool, but only a decision-support system.
-For definitive results, always consult a medical specialist.
-""")
+    <style>
+    .main { background-color: #0e1117; }
+    [data-testid="stMetricValue"] { font-size: 30px; }
+    img { border-radius: 8px; border: 1px solid #30363d; }
+    </style>
+    """, unsafe_allow_html=True)
 
-st.divider()
+st.title("DermaScan AI: Professional Skin Analysis")
+st.markdown("---")
 
+col_input, col_settings = st.columns([1, 1])
 
-uploaded_file = st.file_uploader("Upload a photo of your skin...", type=["jpg", "jpeg", "png"])
-
-
-if uploaded_file is not None:
+with col_input:
+    st.subheader("1. Image Upload")
+    uploaded_file = st.file_uploader("Select dermoscopy image...", type=["jpg", "jpeg", "png"])
     
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Photo", width=250)
-    
-    st.markdown("### Patient Symptoms")
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Original Lesion Image", width=300)
+
+with col_settings:
+    st.subheader("2. Clinical Details")
     patient_text = st.text_area(
-        "Please describe your symptoms (e.g., itching, bleeding, rapid growth, how long it has been there):", 
-        height=100
+        "Patient Symptoms / History:", 
+        height=150,
+        placeholder="E.g., Itching, bleeding, color change within 2 months..."
     )
+
+    st.subheader("3. Analysis Mode")
+    detail = st.toggle("Deep Analysis (Enable Heatmap & Grad-CAM)", value=True)
     
-    if st.button(" Start Analysis"):
-        with st.spinner("AI is analyzing the image, please wait..."):
+    if detail:
+        st.info("Mode: Explainable AI (PyTorch)")
+    else:
+        st.success("Mode: Ultra-fast Inference (ONNX)")
+
+    st.divider()
+    analyze_btn = st.button("START DIAGNOSIS", use_container_width=True, type="primary")
+
+if analyze_btn:
+    if uploaded_file is None:
+        st.error("Please upload an image first!")
+    else:
+        with st.spinner("AI is examining the lesion..."):
             try:
                 img_byte_arr = io.BytesIO()
                 image.save(img_byte_arr, format="JPEG")
-                files = {"file": ("image.jpg", img_byte_arr.getvalue(), "image/jpeg")}
-                data_payload = {"text": patient_text} 
+                img_bytes = img_byte_arr.getvalue()
+
+                files = {"file": ("image.jpg", img_bytes, "image/jpeg")}
+                data_payload = {"text": patient_text, "needs_heatmap": detail} 
+
                 response = requests.post(
                     "http://127.0.0.1:8000/analyze", 
                     files=files, 
@@ -50,54 +69,53 @@ if uploaded_file is not None:
                 
                 if response.status_code == 200:
                     result = response.json()
-                    prediction = result["prediction"]
-                    confidence = result["confidence"]
-                    heatmap_base64  = result["heatmap_base64"]
-
-                    decaoding_byte = base64.b64decode(heatmap_base64)
-                    np_byte = np.frombuffer(decaoding_byte,np.uint8)
-                    heatmap_img = cv2.imdecode(np_byte,cv2.IMREAD_COLOR)
-                    heatmap_img = cv2.cvtColor(heatmap_img, cv2.COLOR_BGR2RGB)
-
-
-                    original_image = Image.open(uploaded_file).convert("RGB")
-                    original_image = original_image.resize((224,224))
-                    original_np = np.array(original_image)
                     
-                    superimposed_img = cv2.addWeighted(original_np,0.6,heatmap_img,0.4,0)
-
+                    st.divider()
                     
-                    st.divider() 
-                    col1, col2 = st.columns(2)
+                    m1, m2, m3 = st.columns(3)
+                    with m1:
+                        if result["prediction"] == "Risky":
+                            st.error("RESULT: RISKY")
+                        else:
+                            st.success("RESULT: NORMAL")
+                    with m2:
+                        st.metric("Hybrid Score", f"%{result['confidence']*100:.2f}")
+                    with m3:
+                        st.caption(f"Engine: {result.get('model_used', 'N/A')}")
+                        st.write(f"Note: {result['message']}")
 
-                    with col1:
-                        st.info("Original Image")
-                        st.image(original_image,use_container_width=True)
+                    st.write("---")
                     
-                    with col2:
-                        st.warning("AI Attention Map (Grad-CAM)")
-                        st.image(superimposed_img, caption="Where did I focus?", use_container_width=True)
-
-                    st.subheader(" Analysis Result")
+                    img_col1, img_col2 = st.columns(2)
                     
-                    if prediction == "Risky":
-                        st.error(" **Detected Condition: RISKY**")
-                        st.warning(f"Confidence Score: %{confidence*100:.2f}")
-                    else:
-                        st.success(" **Detected Condition: NORMAL**")
-                        st.info(f"Confidence Score: %{confidence*100:.2f}")
-                        
-                    st.info(f" {result['message']}")
+                    with img_col1:
+                        st.subheader("Input Image")
+                        st.image(image, width=350)
+                        st.write(f"Visual Risk: %{result['scores']['image']*100:.1f}")
 
-                    
+                    with img_col2:
+                        heatmap_base64 = result.get("heatmap_base64", "")
+                        if heatmap_base64:
+                            st.subheader("Attention Map")
+                            
+                            decoded_bytes = base64.b64decode(heatmap_base64)
+                            np_arr = np.frombuffer(decoded_bytes, np.uint8)
+                            heatmap_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                            heatmap_img = cv2.cvtColor(heatmap_img, cv2.COLOR_BGR2RGB)
 
-
+                            original_image_cv = np.array(image.convert("RGB"))
+                            h, w, _ = original_image_cv.shape
+                            heatmap_resized = cv2.resize(heatmap_img, (w, h))
+                            
+                            superimposed_img = cv2.addWeighted(original_image_cv, 0.5, heatmap_resized, 0.5, 0)
+                            
+                            st.image(superimposed_img, width=350)
+                            st.write(f"Symptom Risk: %{result['scores']['text']*100:.1f}")
+                        else:
+                            st.info("Heatmap only available in Deep Mode")
 
                 else:
-                    st.error("An error occurred while communicating with the API.")
+                    st.error(f"Server Error: {response.status_code}")
                     
             except Exception as e:
-                st.error(f"Connection error: {e}. Please make sure the FastAPI server is running.")
-
-st.divider()
-st.caption("Ondokuz Mayis University - Computer Engineering | Ferhat - AI Project 2026")
+                st.error(f"Connection Failed: {e}")
