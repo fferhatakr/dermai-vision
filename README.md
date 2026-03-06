@@ -1,10 +1,11 @@
-#  DermAIVision - Dermatologist in Your Pocket (v2.6.0 - Full-Stack Web System)
-[![DermaScan AI CI/CD](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml)
-![Recall@5](https://img.shields.io/badge/Recall@5-95%25-brightgreen)
+
+# DermaScan AI - Professional Clinical Decision Support System (v3.0.0)
+![Recall (Melanoma)](https://img.shields.io/badge/Recall_Melanoma-~55%25-orange)
+![Technique](https://img.shields.io/badge/Tech-TTA_%2B_Weighted_Loss-blue)
+![Explainability](https://img.shields.io/badge/XAI-Grad--CAM-yellow)
 ![Architecture](https://img.shields.io/badge/Model-MobileNetV3_Large-blueviolet)
 ![NLP](https://img.shields.io/badge/NLP-DistilBERT-yellow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
@@ -28,14 +29,14 @@ The project has evolved from a lightweight mobile experiment to a high-performan
 
 ```mermaid
 graph LR
-    A[User / Patient] -->|Uploads Image & Text| B(Streamlit UI)
-    B -->|POST Request| C{FastAPI Backend}
-    C -->|Image Tensor| D[MobileNetV3 Encoder]
-    C -->|Text String| E[DistilBERT Encoder]
-    D -->|576-dim Vector| F[(FAISS / KNN Vector DB)]
-    E -->|Semantic Risk| G[Hybrid Fusion Engine]
-    F -->|Top-5 Visual Matches| G
-    G -->|Final Diagnosis Score| B
+    A[Patient Image] -->|TTA: 3 Views| B(MobileNetV3-Large)
+    B -->|Feature Extraction| C[Logits]
+    C -->|Softmax & Averaging| D{Risk Probability}
+    E[Patient History] -->|DistilBERT| F[Symptom Risk]
+    D --> G[Hybrid Fusion Engine]
+    F --> G
+    G -->|Final Decision| H[RISKY / NORMAL]
+    G -->|Grad-CAM| I[Attention Map]
 ```
 ---
 
@@ -74,7 +75,8 @@ This section tracks the evolution of the AI models.
 | **`Vision-Exp03`** | ResNet18 | Transfer Learning | Pre-trained ImageNet weights integrated; large jump in feature extraction. |
 | **`Vision-Mobile-v1`**| MobileNetV3-Small| Mobile Optimization | Lightweight architecture selected for future iOS/Android on-device inference. |
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet| Metric Learning |  Optimized to map visually similar conditions closer together in a 576-dimensional embedding space. |
-| **`Vision-Embed-v3`** | MobileNetV3 |Triplet + ONNX  | **Current Production Model.** Latest State-of-the-art. Features 960-dim embeddings. Optimized via ONNX Runtime for 40% faster inference on M1/CPU. |
+| **`Vision-Embed-v3`** | MobileNetV3 |Triplet + ONNX  |  Latest State-of-the-art. Features 960-dim embeddings. Optimized via ONNX Runtime for 40% faster inference on M1/CPU. |
+| **`Vision-Classifier-v3`** | MobileNetV3 + TTA | Weighted Loss + Scheduler | Current Production. Prioritizes Recall & Specificity. Validated on OOD web data |
 
 
 ###  NLP Model Registry (Multimodal Expansion)
@@ -145,9 +147,10 @@ AI_DET_PROJECT/
 │
 ├── Data/                     # Dataset files (not tracked by Git)
 │   ├── artifacts/            # Generated reference embeddings (not tracked by Git)
+│   ├── externel_test/
 │   ├── images/               # Raw images
 │   └── metadata/             # Dataset metadata
-├── Scripts/ 
+├── scripts/ 
 │   └── export_to_onnx.py 
 │
 ├── src/                      # Source code
@@ -162,10 +165,9 @@ AI_DET_PROJECT/
 │   ├── inference/            # Inference pipeline
 │   │   ├── benchmark_retrieval.py
 │   │   └── hybrid_predict.py
-│   ├── legacy/
-│   │   ├── baseline_trainer.py
-│   │   ├── infer.py
-│   │   └── lightning_trainer.py
+│   ├── engine/
+│   │   ├── eval_tta_engine.py
+│   │   └──train_class_v2.py
 │   ├── training/             # Training pipeline
 │   │   ├── contrastive_trainer.py
 │   │   ├── nlp_trainer.py
@@ -193,23 +195,32 @@ AI_DET_PROJECT/
 
 ##  Technologies and Techniques Used
 
-- **Architectures: Custom CNNs, ResNet18, MobileNetV3**
-- **Transfer Learning: Fine-tuning pre-trained ImageNet weights (requires_grad=True, low learning rate)**  
-- **Data Pipeline: RandomHorizontalFlip, RandomRotation, ColorJitter, ImageNet Normalization.** 
-- **Imbalanced Data Solution: Class Weights (sklearn) for vision; data augmentation for NLP.** 
-- **Optimization: AdamW optimizer, Dynamic Learning Rate, Softmax Probability Scoring.**  
+- **Architectures:** Custom CNNs, ResNet18, **MobileNetV3-Large (v3.0.0)**
+- **Transfer Learning:** Fine-tuning pre-trained ImageNet weights (requires_grad=True, low learning rate)  
+- **Inference Strategy:** **Test-Time Augmentation (TTA)** - Averaging predictions from 3 augmented views (Original, Flip-H, Flip-V) for robust decision making.
+- **Explainable AI (XAI):** **Grad-CAM (Gradient-weighted Class Activation Mapping)** to visualize lesion attention maps.
+- **Data Pipeline:** RandomHorizontalFlip, RandomRotation, ColorJitter, ImageNet Normalization. 
+- **Imbalanced Data Solution:** **Weighted Cross-Entropy Loss** (prioritizing Melanoma recall); data augmentation for NLP. 
+- **Optimization:** AdamW optimizer, **StepLR Scheduler**, Softmax Probability Scoring.
+
+
+
 
 ##  Project Documentation
 * **[CHANGELOG.md](CHANGELOG.md):** Detailed history of version updates and fixes.
 * **[ROADMAP.md](ROADMAP.md):** Future features and my technical learning path (Docker, iOS, XAI).
 
 
-##  Installation 
 
-1. Clone the repo:
+
+
+
+## Installation & Setup
+
+**1. Clone the Repository:**
 
 ```bash
-git clone https://github.com/fferhatakr/dermai-vision.git
+git clone [https://github.com/fferhatakr/dermai-vision.git](https://github.com/fferhatakr/dermai-vision.git)
 cd dermai-vision
 ```
 
@@ -217,6 +228,7 @@ cd dermai-vision
 
 ```bash
 python -m venv venv
+# Activate the environment:
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
@@ -227,63 +239,41 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-#  Running the Project
+#  Running the System (v3.0.0 - Classification Engine)
 
-The project now operates as a full-stack application. You need to run both the backend (API) and the frontend (UI) simultaneously.
+This project has been upgraded to a dual-stack application. You need to run the FastAPI Backend and the Streamlit Frontend in separate terminals.
 
-**1. Start the Backend API (FastAPI & KNN Engine):**
+**Step 1: Start the Backend API (TTA Engine)**
 ```bash
 uvicorn src.api.main:app --reload
 ```
 
-**2. Start the Web Interface (Streamlit):**
-Open a new terminal window (keep the API running) and execute:
+**Step 2: Start the Clinical Interface (UI)**
+Open a new terminal, activate the venv, and launch the dashboard:
 ```bash
 streamlit run src/ui/app.py
 ```
 
-## 🔹 Embedding Database Initialization (Required)
 
-This system uses a reference embedding database for similarity search.
-After training a vision model, embeddings must be generated once before running inference.
+###  Developer Guide (Training from Evaluation)
 
+**1. Train the Classifier (V2 - Weighted Loss):**
 ```bash
-python src/utils/create_embeddings.py
+# Trains MobileNetV3 with Class Weights & LR Scheduler
+python src/engine/train_class_v2.py
 ```
-
-###  Developer Guide (Training from Scratch)
-
-**1. Train Vision Model (PyTorch Lightning & Triplet Loss)**
+**2. Evaluate with TTA (Test-Time Augmentation):**
 ```bash
-python src/training/lightning_trainer.py
-```
-**2. Extract and Save Embeddings (Update the KNN Database)**
-```bash
-python src/inference/benchmark_retrieval.py
+# Runs the evaluation engine on the test set with 3-view voting
+python src/engine/eval_tta_engine.py
 ```
 **3. Train NLP Model (Symptom Analysis)**
 ```bash
 python src/training/nlp_trainer.py
 ```
 
+## Legacy Features (Deprecated)
 
+* **Embedding Database Initialization: The project no longer uses KNN/Vector Search (create_embeddings.py is deprecated).**
+* **Triplet Loss Training: Replaced by Weighted Cross-Entropy for better specificity.**
 
-#  Multimodal Fusion (Hybrid Diagnosis)
-```bash
-python src/inference/hybrid_predict.py
-# Output Example:
-#  Image Risk : %95.38
-#  Complaint Risk : %99.92
-#  HYBRID SCORE : %98.10
-#  DIAGNOSIS :  RISKY 
-```
-
-###  NLP Inference (Symptom Analysis)
-You can test the NLP model directly from your Python code:
-
-```python
-from src.inference.predict import predict_symptom
-# Analyze patient complaint:
-result = predict_symptom("My lesion's color has darkened and it bleeds.")
-print(f"Output: {result} Risky")
-```
