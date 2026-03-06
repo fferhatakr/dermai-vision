@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 import yaml
 import sys
 import os
+from torch.utils.data import Subset
+import numpy as np
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -39,8 +41,22 @@ def main():
     ])
     
 
-    dataset = datasets.ImageFolder(root=config['data']['data_path'], transform=transform)
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
+    full_dataset= datasets.ImageFolder(root=config['data']['data_path'], transform=transform)
+    
+    indices = []
+    max_samples_per_class = 200
+    targets = np.array(full_dataset.targets)
+    for class_idx in range(len(full_dataset.classes)):
+        class_indices = np.where(targets == class_idx)[0]
+        if len(class_indices) > max_samples_per_class:
+            selected_indices = np.random.choice(class_indices, max_samples_per_class, replace=False)
+        else:
+            selected_indices = class_indices
+        indices.extend(selected_indices)
+
+    balanced_dataset = Subset(full_dataset, indices)
+    dataloader = DataLoader(balanced_dataset, batch_size=32, shuffle=False)
+
 
     print(" Gallery (Database) is being extracted... This process may take a while.")
     all_embeddings = []

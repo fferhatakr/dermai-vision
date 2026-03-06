@@ -2,6 +2,21 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v3.0.0] - The "Honest AI" Update (TTA & Robust Classification)
+### 🚀 Major Pivot
+- **Architectural Shift:** Transitioned from Metric Learning (Triplet Loss/KNN) to a **Weighted Classification** paradigm. The previous retrieval system was prone to overfitting on majority classes. The new architecture prioritizes **Recall on malignant classes** over general accuracy.
+- **Inference Strategy:** Replaced single-pass inference with **Test-Time Augmentation (TTA)**. The model now "looks" at the lesion from 3 different angles (Original, H-Flip, V-Flip) and averages the probabilities to ensure diagnostic stability.
+
+### Added
+- **Weighted Cross-Entropy Loss:** Implemented class weighting to penalize the model heavily for missing Melanoma cases, directly addressing the dataset imbalance.
+- **Learning Rate Scheduler:** Integrated `StepLR` (Gamma 0.1) to refine weights at later epochs, preventing local minima stagnation.
+- **Out-of-Distribution (OOD) Robustness:** Verified system capability to distinguish non-cancerous skin conditions (e.g., random rashes from web) as "Normal" with low risk scores, reducing false positives.
+
+### Removed / Deprecated
+- **KNN Retrieval Engine:** The vector database approach has been archived in favor of direct probabilistic classification.
+- **Legacy Triplet Loss:** Removed from the active production pipeline to reduce complexity.
+
+
 ## [v2.5.0] - Scaling Intelligence (Large Backbone)
 ### Changed
 - **Architectural Upgrade:** Switched the Vision Backbone from MobileNetV3-Small to **MobileNetV3-Large (V2)**.

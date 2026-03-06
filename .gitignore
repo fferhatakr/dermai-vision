@@ -6,6 +6,7 @@ Data/images/
 Data/metadata/
 Data/processed/
 Data/artifacts/
+Data/external_test/
 *.pt
 *.pth
 
@@ -43,3 +44,4 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+src/legacy/

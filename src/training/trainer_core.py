@@ -24,9 +24,51 @@ class DermatologLightning(pl.LightningModule):
         #We automatically calculate the success rate
         self.accuracy =Accuracy(task="multiclass",num_classes=num_classes)
 
+        self.activations = None
+        self.gradients = None
+        self.model.mobilenet_model.features.register_forward_hook(self.save_activations)
+        self.model.mobilenet_model.features.register_full_backward_hook(self.backward_gradients)
+
+    def save_activations(self, module, input, output):
+        self.activations = output
+
+    def backward_gradients(self, module, grad_input, grad_output):
+        self.gradients = grad_output[0]
+
     def forward(self,x):
 
         return self.model(x)
+    
+    def generate_gradcam(self, input_image):
+        
+        if input_image.grad is not None:
+            input_image.grad.zero_()
+        
+        
+        logits = self.forward(input_image)
+        
+        
+        pred_idx = torch.argmax(logits, dim=1)
+        score = logits[0, pred_idx]
+        
+        
+        self.zero_grad()
+        score.backward()
+
+        
+        maps = self.activations 
+        derivative = self.gradients  
+        weights = derivative.mean(dim=[2,3], keepdim=True)
+        multiplication_table = maps * weights
+        
+        single_map = multiplication_table.sum(dim=1, keepdim=True)
+        positive_map = F.relu(single_map)
+        
+        
+        max_val = positive_map.max()
+        normal_map = positive_map / (max_val + 1e-8)
+
+        return normal_map
     
 
     def training_step(self,batch,batc_idx):

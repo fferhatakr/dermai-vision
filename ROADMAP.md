@@ -20,24 +20,19 @@ This document outlines the strategic progression of the Skin Cancer CBIR project
   -  Expand Vector Embedding dimension to **960**.
   -  Achieve >94% Recall on the validation set.
 
-### Milestone 5: Out-of-Distribution (OOD) Hardening (v2.6.0) (Pending)
-* **Focus:** Ensuring system safety and robustness against invalid inputs.
-* **Deliverable:** Development of an anomaly detection layer to automatically identify and reject non-dermatological images, preventing erroneous clinical predictions.
+### Milestone 5: Out-of-Distribution (OOD) Hardening (v3.0.0) (Completed ✅)
+* **Focus:** Ensuring system safety against non-lesion images.
+* **Deliverable:** The Classifier V2 successfully identifies web-crawled non-cancerous rashes as "Normal" (Specificity), proving it doesn't just "guess" based on dataset bias.
 
-### Milestone 6: High-Dimensional Vector Search (v2.7.0) (Pending)
-* **Focus:** Scaling the retrieval database for production-level inference.
-* **Deliverable:** Migration from standard PyTorch KNN to **Meta's FAISS (Facebook AI Similarity Search)** to achieve sub-millisecond retrieval latency across a large-scale embedding database.
+### Milestone 6: Vector Search Scaling (Deprecated ❌)
+* **Note:** *Since the project pivoted from Retrieval to Direct Classification, the need for a FAISS vector database is obsolete.*
 
-### Milestone 7: Containerization & Microservices (v3.0.0) (Priority)
-* **Focus:** Creating a production-ready, reproducible environment.
-* **Deliverable:** - Full **Dockerization** of the FastAPI backend service.
-  - writing a `docker-compose.yml` to orchestrate the API and Vector Database services together.
+### Milestone 7: "Eagle Eye" Resolution Upgrade (v3.1.0) (Next Priority 🔥)
+* **Focus:** Improving Melanoma Recall (sensitivity) by capturing micro-textures.
+* **Deliverable:**
+  - Increase input resolution from **224x224** to **448x448**.
+  - Implement **Focal Loss** to force the model to focus on "hard-to-classify" malignant cases (the missing 16/33).
 
-### Milestone 8: Cloud-Native Deployment (v3.1.0)
-* **Focus:** Global accessibility and scalability.
-* **Deliverable:** Deployment of the containerized inference engine to cloud infrastructure (e.g., AWS ECS, Google Cloud Run or a VPS) with NGINX as a reverse proxy.
-
-### Milestone 9: Inference Optimization (ONNX & Quantization) (v4.0.0)
-* **Focus:** Maximizing throughput and minimizing latency on CPU-based servers.
-* **Deliverable:** - Exporting the PyTorch models to **ONNX Runtime** format.
-  - Applying **Dynamic Quantization** (reducing model size/latency) to serve requests faster without needing expensive GPU instances.
+### Milestone 8: Transformer Era (v4.0.0) (Future Research)
+* **Focus:** Global context understanding.
+* **Deliverable:** Benchmarking **Vision Transformers (ViT)** or **ConvNeXt** against the current MobileNetV3 to see if attention mechanisms outperform CNNs on skin lesion borders.

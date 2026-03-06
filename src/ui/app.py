@@ -6,7 +6,8 @@ import base64
 import cv2
 import numpy as np
 
-st.set_page_config(page_title="DermaScan AI", page_icon="🛡️", layout="wide") 
+st.set_page_config(page_title="DermaScan AI", page_icon="shield", layout="wide")
+
 
 st.markdown("""
     <style>
@@ -38,12 +39,13 @@ with col_settings:
     )
 
     st.subheader("3. Analysis Mode")
+
     detail = st.toggle("Deep Analysis (Enable Heatmap & Grad-CAM)", value=True)
     
     if detail:
-        st.info("Mode: Explainable AI (PyTorch)")
+        st.info("Mode: V2 Ultimate (TTA Enabled + Grad-CAM)")
     else:
-        st.success("Mode: Ultra-fast Inference (ONNX)")
+        st.warning("Mode: Standard Analysis (TTA Enabled)")
 
     st.divider()
     analyze_btn = st.button("START DIAGNOSIS", use_container_width=True, type="primary")
@@ -52,8 +54,9 @@ if analyze_btn:
     if uploaded_file is None:
         st.error("Please upload an image first!")
     else:
-        with st.spinner("AI is examining the lesion..."):
+        with st.spinner("AI is examining the lesion with TTA strategy..."):
             try:
+                
                 img_byte_arr = io.BytesIO()
                 image.save(img_byte_arr, format="JPEG")
                 img_bytes = img_byte_arr.getvalue()
@@ -61,6 +64,7 @@ if analyze_btn:
                 files = {"file": ("image.jpg", img_bytes, "image/jpeg")}
                 data_payload = {"text": patient_text, "needs_heatmap": detail} 
 
+                
                 response = requests.post(
                     "http://127.0.0.1:8000/analyze", 
                     files=files, 
@@ -74,14 +78,17 @@ if analyze_btn:
                     
                     m1, m2, m3 = st.columns(3)
                     with m1:
+                        
                         if result["prediction"] == "Risky":
-                            st.error("RESULT: RISKY")
+                            st.error(f"RESULT: {result['prediction'].upper()}")
                         else:
-                            st.success("RESULT: NORMAL")
+                            st.success(f"RESULT: {result['prediction'].upper()}")
                     with m2:
-                        st.metric("Hybrid Score", f"%{result['confidence']*100:.2f}")
+                        
+                        st.metric("Hybrid Risk Score", f"%{result['confidence']*100:.2f}")
                     with m3:
-                        st.caption(f"Engine: {result.get('model_used', 'N/A')}")
+                        
+                        st.caption("Engine: V2 Ultimate (PyTorch)")
                         st.write(f"Note: {result['message']}")
 
                     st.write("---")
@@ -89,28 +96,31 @@ if analyze_btn:
                     img_col1, img_col2 = st.columns(2)
                     
                     with img_col1:
-                        st.subheader("Input Image")
+                        st.subheader("Analysis Focus")
                         st.image(image, width=350)
-                        st.write(f"Visual Risk: %{result['scores']['image']*100:.1f}")
+                       
+                        st.metric("Visual Risk Score", f"%{result['scores']['image']*100:.1f}")
 
                     with img_col2:
                         heatmap_base64 = result.get("heatmap_base64", "")
                         if heatmap_base64:
-                            st.subheader("Attention Map")
+                            st.subheader("Attention Map (Grad-CAM)")
+                            
                             
                             decoded_bytes = base64.b64decode(heatmap_base64)
                             np_arr = np.frombuffer(decoded_bytes, np.uint8)
                             heatmap_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                             heatmap_img = cv2.cvtColor(heatmap_img, cv2.COLOR_BGR2RGB)
 
+                            
                             original_image_cv = np.array(image.convert("RGB"))
                             h, w, _ = original_image_cv.shape
                             heatmap_resized = cv2.resize(heatmap_img, (w, h))
                             
-                            superimposed_img = cv2.addWeighted(original_image_cv, 0.5, heatmap_resized, 0.5, 0)
+                            superimposed_img = cv2.addWeighted(original_image_cv, 0.6, heatmap_resized, 0.4, 0)
                             
                             st.image(superimposed_img, width=350)
-                            st.write(f"Symptom Risk: %{result['scores']['text']*100:.1f}")
+                            st.metric("NLP Symptom Risk", f"%{result['scores']['text']*100:.1f}")
                         else:
                             st.info("Heatmap only available in Deep Mode")
 
