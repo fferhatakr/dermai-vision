@@ -2,11 +2,8 @@
 # DATA & MODEL FILES (GENERATED / LARGE FILES)
 
 # Raw & processed datasets
-Data/images/
-Data/metadata/
 Data/processed/
-Data/artifacts/
-Data/external_test/
+Data/Raw/
 *.pt
 *.pth
 

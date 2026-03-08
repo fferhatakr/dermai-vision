@@ -6,118 +6,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-
-#We define the first version of the model.
-class SkinCancerModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.layer =nn.Sequential(
-        nn.Flatten(),
-        nn.Linear(150528,224),
-        nn.ReLU(),
-        nn.Linear(224,7)
-    )
-    def forward(self, x):
-       x = self.layer(x)
-       return x
-
-#We define the number of classes.
-num_classes = 7
-
-#We define the second version of the model.
-class SkinCancerModelV2(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(in_channels=3,out_channels=16,kernel_size=3, padding=1)
-        self.relu1 = nn.ReLU()
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        
-        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32,kernel_size=3,padding=1)
-        self.relu2 = nn.ReLU()
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        
-        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3,padding=1)
-        self.relu3 = nn.ReLU()
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.flatten = nn.Flatten()
-        self.relu4 = nn.ReLU()
-        self.dropout = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(50176,128)
-        self.fc2 = nn.Linear(128,num_classes)
-    #We define the forward pass of the model.
-    def forward(self,x):
-        x = self.conv1(x)
-        x = self.relu1(x)
-        x = self.pool1(x)
-
-        
-        x = self.conv2(x)
-        x = self.relu2(x)
-        x = self.pool2(x)
-        
-        
-        x = self.conv3(x)
-        x = self.relu3(x)
-        x = self.pool3(x)
-
-        
-        x = self.flatten(x)
-
-       
-        x = self.fc1(x)
-        x = self.relu4(x)
-        x = self.dropout(x)
-        x = self.fc2(x)
-
-        
-        return x
+from torchvision.models import efficientnet_b3, EfficientNet_B3_Weights
 
 
 
-#We define the third version of the model.
-class SkinCancerResNet(nn.Module):
-    def __init__(self, num_classes=7):
-        super().__init__()
-        
-        self.resnet18_model = models.resnet18(weights='IMAGENET1K_V1')
-        
-
-        for param in self.resnet18_model.parameters():
-            param.requires_grad = True
-
-        original_fc_layer = self.resnet18_model.fc
-        num_features = original_fc_layer.in_features
-        num_classes = 7
-        new_fc_layer = nn.Linear(in_features=num_features, out_features=num_classes)
-        self.resnet18_model.fc = new_fc_layer
-
-    def forward(self, x):
-        return self.resnet18_model(x)
     
-
-#We define the fourth version of the model.
-class SkinCancerMobileNet(nn.Module): 
-    def __init__(self, num_classes=7):  
-        super().__init__() 
-        self.mobilenet_model = models.mobilenet_v3_small(weights='IMAGENET1K_V1')
-
-        for param in self.mobilenet_model.parameters():
-            param.requires_grad = True 
-
-        original_fc_layer = self.mobilenet_model.classifier[-1]
-        num_features = self.mobilenet_model.classifier[-1].in_features
-        num_classes = 7 
-        new_fc_layer = nn.Linear(in_features=num_features, out_features=num_classes) 
-        self.mobilenet_model.classifier[-1] = new_fc_layer 
-
-    def forward(self, x): 
-        return self.mobilenet_model(x) 
-
-
-
 
 """
 Some may wonder why we rejected DenseNet. Our aim is to release 
@@ -131,7 +24,7 @@ class  DermaScanModel(nn.Module):
 
 
         pretrained = torchvision.models.mobilenet_v3_large(weights='IMAGENET1K_V1')
-        self.backbone = pretrained.features #We are using the features of the pre-trained model.
+        self.backbone = pretrained.features 
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
@@ -146,32 +39,34 @@ class  DermaScanModel(nn.Module):
         return x
     
 
-#Most recently used class
-class DermaScanModelV2(nn.Module):
-    def __init__(self):
-        super().__init__()
+
+#Most recently used class 07.03.2026
+class DermaScanModelV3(nn.Module):
+    def __init__(self, num_classes=8, pretrained=True):
+        super(DermaScanModelV3, self).__init__()
         
-
-        self.backbone = torchvision.models.mobilenet_v3_large(weights='IMAGENET1K_V1').features
-
-        with torch.no_grad():
-            dummy_input = torch.randn(1, 3, 224, 224)
-            features = self.backbone(dummy_input)
-            in_features = features.shape[1] 
-        self.gap = nn.AdaptiveAvgPool2d((1,1))
-        self.flatten = nn.Flatten()
-        self.classifier = nn.Sequential(
-
+        weights = EfficientNet_B3_Weights.DEFAULT if pretrained else None
+        self.backbone = efficientnet_b3(weights=weights)
+        for param in self.backbone.parameters():
+            param.requires_grad = True
+            
+        
+        in_features = self.backbone.classifier[1].in_features
+        
+       
+        self.backbone.classifier = nn.Sequential(
+            nn.Dropout(p=0.4), 
             nn.Linear(in_features, 512),
             nn.BatchNorm1d(512), 
-            nn.ReLU(),
-            nn.Dropout(0.5),     
-            nn.Linear(512, 7)
+            nn.SiLU(), 
+            nn.Dropout(p=0.2),
+            nn.Linear(512, num_classes)
         )
 
     def forward(self, x):
-        x = self.backbone(x) 
-        x = self.gap(x)      
-        x = self.flatten(x)  
-        x = self.classifier(x) 
-        return x
+        return self.backbone(x)
+    
+    
+    def unfreeze_backbone(self):
+        for param in self.backbone.features.parameters():
+            param.requires_grad = True

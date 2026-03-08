@@ -72,7 +72,7 @@ def main():
     all_embeddings = torch.cat(all_embeddings, dim=0)
     all_labels = torch.tensor(all_labels)
     
-    print(f" Gallery Ready! Total Images: {all_embeddings.size(0)}, Vector Size: {all_embeddings.size(1)}")
+    print(f"Total Images: {all_embeddings.size(0)}, Vector Size: {all_embeddings.size(1)}")
 
 
     print(" Top-5 Success Rate Calculating...")

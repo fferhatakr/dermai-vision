@@ -1,51 +1,51 @@
 
-# DermaScan AI - Professional Clinical Decision Support System (v3.0.0)
-![Recall (Melanoma)](https://img.shields.io/badge/Recall_Melanoma-~55%25-orange)
-![Technique](https://img.shields.io/badge/Tech-TTA_%2B_Weighted_Loss-blue)
+# DermaScan AI - Professional Clinical Decision Support System (v4.0.0)
+
+![Accuracy](https://img.shields.io/badge/General_Accuracy-~75.5%25-blue)
+![Recall (Melanoma)](https://img.shields.io/badge/Recall_Melanoma-~80%25-green)
+![Architecture](https://img.shields.io/badge/Model-EfficientNet--B3-blueviolet)
+![Technique](https://img.shields.io/badge/Tech-Focal_Loss_%2B_TTA-orange)
+![Resolution](https://img.shields.io/badge/Resolution-300x300-lightgrey)
 ![Explainability](https://img.shields.io/badge/XAI-Grad--CAM-yellow)
-![Architecture](https://img.shields.io/badge/Model-MobileNetV3_Large-blueviolet)
 ![NLP](https://img.shields.io/badge/NLP-DistilBERT-yellow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
-![Status](https://img.shields.io/badge/Status-Under_Development-green.svg)
-
 
 ##  Disclaimer:
 **This project is an AI research and engineering demonstration.**
 **It is NOT intended for real medical diagnosis.**
 
 
-This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (MobileNetV3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
+This project is an end-to-end deep learning-based skin cancer classification and retrieval assistant. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, integrating **Multimodal Fusion (EfficientNet-B3 & DistilBERT)**, and finally evolving into a **Content-Based Image Retrieval (CBIR)** system served via a modern REST API and Web Interface.
 
-##  What's New in v2.6.0: Inference Optimization & Edge Readiness (Current)
-The project has evolved from a lightweight mobile experiment to a high-performance clinical search engine:
+##  What's New in v4.0.0: The Clinical Champion (Current)
+The project has evolved from a "similar image search" tool into a highly accurate Clinical Diagnosis Assistant:
 
-* **ONNX Runtime Integration:** Exported the MobileNetV3-Large backbone to ONNX format, reducing inference latency by ~40% on CPU/Edge devices.
-* **Dual-Engine Support:** Users can now toggle between "Deep Analysis" (PyTorch with Grad-CAM) and "Fast Mode" (ONNX for high-speed screening).
+* **EfficientNet-B3 Backbone:** Moving away from the lightweight models used in previous versions, the switch was made to EfficientNet-B3, which can analyse leather texture at a micro level. The success rate was brought down to the 75-80 per cent range.
+* **300x300 High-Res Analysis:** Training was conducted at a resolution of 300x300, exceeding standard resolutions; lesion boundaries and irregularities began to be captured more clearly.
+* **Top-3 Differential Diagnosis:** The system no longer simply states "High risk"; it ranks the three most likely conditions (e.g. 60% melanoma, 20% nevus, 10% BCC) with their respective probabilities.
 
 
 ##  System Architecture Flow
 
 ```mermaid
-graph LR
-    A[Patient Image] -->|TTA: 3 Views| B(MobileNetV3-Large)
-    B -->|Feature Extraction| C[Logits]
-    C -->|Softmax & Averaging| D{Risk Probability}
-    E[Patient History] -->|DistilBERT| F[Symptom Risk]
-    D --> G[Hybrid Fusion Engine]
-    F --> G
-    G -->|Final Decision| H[RISKY / NORMAL]
-    G -->|Grad-CAM| I[Attention Map]
+graph TD
+    A[Patient Image] -->|300x300 Resizing| B(EfficientNet-B3)
+    B -->|Feature Extraction| C[Penultimate Layer -2]
+    C -->|Grad-CAM| D[Attention Map / Heatmap]
+    B -->|Softmax| E[Probabilistic Output]
+    E -->|Top-3 Selection| F[Differential Diagnosis]
+    G[Patient History/Symptoms] -->|DistilBERT| H[NLP Risk Score]
+    F --> I[Hybrid Fusion Engine]
+    H --> I
+    I -->|Weight: 0.8/0.2| J[Final Hybrid Diagnostic Report]
 ```
 ---
 
 ###  Retrieval Instead of Classification
 ```md
-Unlike traditional classifiers, the system does not output a fixed label directly.
-Instead, images are mapped into a learned embedding space where visually similar lesions
-are located closer together. Diagnosis is inferred by comparing the query embedding
-against previously diagnosed reference cases.
+Traditional search-based (CBIR) systems simply state 'this image resembles that one'. However, the role of a medical assistant is to provide a definitive diagnosis rather than mere similarity. With v4.0.0, we have transitioned to a Multi-class Classification structure that directly diagnoses 8 different skin conditions. This enables the system to produce more reliable (Honest AI) results by focusing not just on visual similarity but on the structural characteristics of medical classes.
 ```
 
 ##  Engineering & Research Journey
@@ -63,7 +63,11 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v2.3.0` - Explainable AI (XAI): (New)** Added an interpretability layer using Grad-CAM. The system now generates heatmaps to visualize the specific lesion regions influencing the model's retrieval decision, increasing clinical trust.
 * **`v2.4.0` - Engineering Excellence (CI/CD):** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
 * **`v2.5.0` - Scaling Intelligence:** Major backbone upgrade. Switched from MobileNetV3-Small to MobileNetV3-Large (V2), expanding the feature embedding space to 960 dimensions. Integrated rigorous Data Augmentation (Blur, Rotation) and strict Train/Val splitting, achieving a state-of-the-art 94.75% Recall@5.
-* **`v2.6.0` - Inference Optimization and Dual-Engine Support (Current)** Integrated ONNX Runtime to optimize MobileNetV3-Large performance, significantly reducing inference latency for CPU-based local deployment. Developed a dual-engine architecture in the UI that supports switching between high-speed screening and explainable Grad-CAM analysis.
+* **`v2.6.0` - Inference Optimization and Dual-Engine Support** Integrated ONNX Runtime to optimize MobileNetV3-Large performance, significantly reducing inference latency for CPU-based local deployment. Developed a dual-engine architecture in the UI that supports switching between high-speed screening and explainable Grad-CAM analysis.
+* **`v3.0.0` - The "Honest AI" Update** The "Honest AI" Update: A Dynamic Thresholding system has been integrated to improve recall success (MEL 18%, BCC 25%). The hybrid risk engine, which combines image and clinical history data at a ratio of 0.8/0.2, has been synchronised with the Streamlit interface. The FastAPI architecture has been migrated to a modern lifespan structure.
+* **`v4.0.0` - The "Clinical Champion" Update (Current)** The system's brain was upgraded to the EfficientNet-B3 architecture, maximising its visual analysis capacity. Training resolution was reduced to 300x300 pixels, preserving tissue details. Integration of Focal Loss optimised learning success in rare cancer types (e.g., melanoma). The interface has been updated to a side-by-side comparative analysis mode in accordance with clinical standards (350px fixed width).
+
+
 
 ###  Model Registry & Experiments (AI Research)
 This section tracks the evolution of the AI models.
@@ -77,6 +81,7 @@ This section tracks the evolution of the AI models.
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet| Metric Learning |  Optimized to map visually similar conditions closer together in a 576-dimensional embedding space. |
 | **`Vision-Embed-v3`** | MobileNetV3 |Triplet + ONNX  |  Latest State-of-the-art. Features 960-dim embeddings. Optimized via ONNX Runtime for 40% faster inference on M1/CPU. |
 | **`Vision-Classifier-v3`** | MobileNetV3 + TTA | Weighted Loss + Scheduler | Current Production. Prioritizes Recall & Specificity. Validated on OOD web data |
+| **`Vision-Pro-v4`** | EfficientNet-B3 + Hybrid| Focal Loss + Multimodal Fusion | Current Champion. 300x300 high-resolution analysis. Achieved ~80% recall on melanoma. Integrates patient history with 0.8/0.2 weighting. |
 
 
 ###  NLP Model Registry (Multimodal Expansion)
@@ -84,27 +89,27 @@ This section tracks the evolution of the AI models.
 | :--- | :--- | :--- | :--- |
 | **`NLP-Distil-v1`** | DistilBERT (EN) | Symptom Analysis | Semantic risk factor detection from patient-reported free-text. |
 
-##  Architecture Decisions & Evaluation
+##  Architecture Decisions & Evaluation (Updated v4.0.0)
 
-To transition this project from a research experiment to an industry-grade product, specific architectural and evaluation decisions were made:
+The critical architectural choices made to transform the project from the research phase into an industrial product are detailed below:
 
 ### 1. Model Selection Rationale
-* **Vision Backbone (MobileNetV3):** Chosen specifically for its parameter efficiency and compatibility with edge devices. It paves the way for future native iOS/CoreML deployment (v3.0.0) without draining device battery or requiring heavy cloud compute.
-* **Text Backbone (DistilBERT):** A lightweight transformer that provides robust semantic understanding of patient-reported symptoms (e.g., *"bleeding"*, *"rapid growth"*) with minimal latency.
-* **The CBIR Pivot (Triplet Loss):** Standard softmax classification creates rigid, opaque boundaries. By switching to Triplet Margin Loss, the model learns a 576-dimensional metric space where visually similar lesions are clustered together. This allows for **transparent, evidence-based diagnosis** by physically showing the user the Top-5 most similar historical cases.
+* **Vision Backbone (EfficientNet-B3):** MobileNet has been abandoned in favour of the EfficientNet-B3 architecture. This model captures micro-details in skin texture much better by compound scaling the depth, width and resolution parameters in a balanced manner.
+* **Text Backbone (DistilBERT):** DistilBERT, a lightweight yet powerful transformer model, was chosen to interpret patient complaints ("bleeding", "rapid growth").
+* **Classification Paradigm Shift:** The CBIR (search) logic used in previous versions has been abandoned in favour of a direct Multi-class Classification structure. This allows probability values to be obtained directly for 8 different disease classes.
 
 ### 2. Multimodal Fusion Strategy (Late Fusion)
-The system employs a **Late Fusion** mechanism to calculate the `HYBRID SCORE`. 
-1. The Vision pipeline outputs a visual risk probability based on KNN distance voting.
-2. The NLP pipeline processes free-text symptoms to output a semantic risk probability.
-3. A weighted ensemble computes the final diagnostic confidence, mimicking a real dermatologist who evaluates both the visual lesion and the patient's anamnesis.
+The system uses the Late Fusion mechanism for the final HYBRID SCORE calculation:
+1. Vision Pipeline: Analyses features derived from images and generates class-based probabilities (Softmax).
+2. NLP Pipeline: Analyses symptoms to generate a clinical risk score.
+3. Weighted Ensemble: A hybrid diagnosis is made at the decision stage using an 80% Image + 20% Text weighting.
 
-### 3. Retrieval Evaluation Metrics
-Since the system is a Content-Based Image Retrieval (CBIR) engine, standard classification accuracy is insufficient. The model's retrieval quality is evaluated using:
-* **Top-1 Accuracy:** Does the single closest retrieved embedding share the exact same diagnosis?
-* **Recall@5 (Top-5 Accuracy):** Is the correct diagnosis present within the 5 nearest neighbors?
-* **Mean Average Precision (mAP):** Measures the overall clustering quality and ranking order of the retrieved cases in the vector space.
-* **Inference Latency (ms):** It measures the time taken from image upload to hybrid diagnosis result in milliseconds. This metric is used to demonstrate the speed increase (e.g. 40% improvement) provided by ONNX Runtime optimisation compared to a PyTorch-based model.
+### Key Evaluation Metrics
+As the system is now a classification model, the success criteria have been updated:
+- **Accuracy:** The model's overall correct prediction rate (75.52%).
+- **Recall (Sensitivity):** The most critical metric for medical diagnosis. The rate of not missing life-threatening risks such as melanoma.
+- **Top-3 Accuracy:** The rate at which the correct diagnosis is found among the model's top 3 most likely candidates.
+- **Inference Latency:** The end-to-end analysis time (ms) at 300x300 resolution.
 
 
 
@@ -118,20 +123,15 @@ To ensure reliability, the models are evaluated not just on accuracy, but on the
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet | 0.87 | 0.82 | ~45ms |
 | **`Vision-Hybrid-v3`** | MobileNetV3-Large + Triplet | 94.75% | 960 | ~65ms |
 | **`Vision-Fast-v1`** | **MobileNetV3-Large + ONNX** | **94.75%** | **960** | **~38ms** |
-
-*Note: The shift to MobileNetV3 drastically reduced latency, making real-time web inference and future mobile deployment viable, while Triplet Loss significantly boosted the Mean Average Precision (mAP) of the retrieval system.*
+| **`Vision-v4-Champion`** | **EfficientNet-B3** |  |  |  |
 
 ###  Reproducibility & Training Details
 Industry-standard reproducibility is maintained by tracking all hyperparameters and system configurations.
 
-* **Dataset:** ISIC Archive Subset (~8,000+ dermoscopy images)
-* **Data Split:** 70% Train / 15% Validation / 15% Test
-* **Batch Size:** 32 (optimized for memory constraints)
-* **Epochs:** 5 
-* **Optimizer:** AdamW (Initial LR: 0.001, updated via `ReduceLROnPlateau`)
-* **Hardware:** Trained on NVIDIA T4 / Local RTX GPUs
-* **Random Seed:** `42` (forced for deterministic weight initialization and splitting)
-
+* **Dataset:** Extended and Balanced ISIC Archive (Updated v4 Dataset).
+* **Data Resolution** 300x300
+* **Optimizer & Loss:** With AdamW Optimizer, Focal Loss was used to learn difficult classes in an imbalanced dataset.
+* **Augmentation:** RandomRotation, ColourJitter and Test-Time Augmentation (TTA).
 
 ##  File Structure
 
@@ -145,11 +145,9 @@ AI_DET_PROJECT/
 │   ├── inference_config.yaml
 │   └── train_config.yaml
 │
-├── Data/                     # Dataset files (not tracked by Git)
-│   ├── artifacts/            # Generated reference embeddings (not tracked by Git)
-│   ├── externel_test/
-│   ├── images/               # Raw images
-│   └── metadata/             # Dataset metadata
+├── Data/                     # Dataset 
+│   ├── processed/            
+│   └── raw/             
 ├── scripts/ 
 │   └── export_to_onnx.py 
 │
@@ -167,7 +165,7 @@ AI_DET_PROJECT/
 │   │   └── hybrid_predict.py
 │   ├── engine/
 │   │   ├── eval_tta_engine.py
-│   │   └──train_class_v2.py
+│   │   └── train_class_v2.py
 │   ├── training/             # Training pipeline
 │   │   ├── contrastive_trainer.py
 │   │   ├── nlp_trainer.py
@@ -195,13 +193,13 @@ AI_DET_PROJECT/
 
 ##  Technologies and Techniques Used
 
-- **Architectures:** Custom CNNs, ResNet18, **MobileNetV3-Large (v3.0.0)**
-- **Transfer Learning:** Fine-tuning pre-trained ImageNet weights (requires_grad=True, low learning rate)  
-- **Inference Strategy:** **Test-Time Augmentation (TTA)** - Averaging predictions from 3 augmented views (Original, Flip-H, Flip-V) for robust decision making.
-- **Explainable AI (XAI):** **Grad-CAM (Gradient-weighted Class Activation Mapping)** to visualize lesion attention maps.
-- **Data Pipeline:** RandomHorizontalFlip, RandomRotation, ColorJitter, ImageNet Normalization. 
-- **Imbalanced Data Solution:** **Weighted Cross-Entropy Loss** (prioritizing Melanoma recall); data augmentation for NLP. 
-- **Optimization:** AdamW optimizer, **StepLR Scheduler**, Softmax Probability Scoring.
+- **Architectures:** EfficientNet-B3 (v4.0.0 Upgrade) - Feature extraction has been maximised by transitioning to a wider and deeper architecture than MobileNet.
+- **Data Scaling: Dataset expansion & change.** The model's generalisation ability was improved by expanding the dataset with higher quality and more balanced samples.  
+- **Input Resolution:** 300x300 High-Resolution Input. (Resolution increased from 224 to 300 to reduce loss of lesion detail).
+- **Explainable AI (XAI): Grad-CAM** (Penultimate Layer -2). Focus maps visualising the decision-making mechanism.
+- **Optimization Strategy:** Focal Loss & Weighted Random Sampler. Advanced optimisation focusing on rare classes (DF, VASC, etc.) to resolve class imbalance.
+- **Hybrid Scoring:** Multimodal Late Fusion. A risk calculation engine that combines image and NLP data at a ratio of 0.8/0.2
+- **Inference Strategy:** Test-Time Augmentation (TTA) & Sensitivity-Driven Thresholding (MEL/BCC specific threshold values).
 
 
 
@@ -239,9 +237,9 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-#  Running the System (v3.0.0 - Classification Engine)
+#  Running the System (v4.0.0 - Classification Engine)
 
-This project has been upgraded to a dual-stack application. You need to run the FastAPI Backend and the Streamlit Frontend in separate terminals.
+This project has a dual-stack architecture. You must run the FastAPI Backend and Streamlit Frontend units on separate terminals.
 
 **Step 1: Start the Backend API (TTA Engine)**
 ```bash
@@ -259,7 +257,7 @@ streamlit run src/ui/app.py
 
 **1. Train the Classifier (V2 - Weighted Loss):**
 ```bash
-# Trains MobileNetV3 with Class Weights & LR Scheduler
+# Trains EfficientNet-B3 with Class Weights & LR Scheduler
 python src/engine/train_class_v2.py
 ```
 **2. Evaluate with TTA (Test-Time Augmentation):**
@@ -272,8 +270,27 @@ python src/engine/eval_tta_engine.py
 python src/training/nlp_trainer.py
 ```
 
-## Legacy Features (Deprecated)
+## Legacy Features (Architectural Evolution)
 
-* **Embedding Database Initialization: The project no longer uses KNN/Vector Search (create_embeddings.py is deprecated).**
-* **Triplet Loss Training: Replaced by Weighted Cross-Entropy for better specificity.**
+* **KNN & Vector Search (v2.x.x):** The project no longer uses similarity searches based on `create_embeddings.py`. It has transitioned directly to a probability-based diagnosis (Classification) structure.
+* **Triplet Loss Training:** To reduce complexity and clarify class distinctions, the metric learning protocol has been disabled.
+* **MobileNetV3 Backbone:** As of v4.0.0, it has been designated as "Legacy". It has been replaced by **EfficientNet-B3**, which performs deeper tissue analysis.
+* **Standard Weighted Cross-Entropy:** It has been replaced by the **Focal Loss** architecture because it was insufficient in learning the "hard examples" in melanoma cases.
 
+
+
+### Acknowledgements
+The images and metadata of the "ISIC 2019: Training" data are licensed under a
+Creative Commons Attribution-NonCommercial 4.0 International License
+(CC-BY-NC).
+You should have received a copy of the license along with this
+work. If not, see <http://creativecommons.org/licenses/by-nc/4.0/>.
+Additional information and documentation for the "ISIC 2019: Training" data
+may be found at https://challenge2019.isic-archive.com/ .
+The "ISIC 2019: Training" data includes content from several copyright
+holders. To comply with the attribution requirements of the CC-BY-NC license,
+the aggregate "ISIC 2019: Training" data must be cited as:
+  ISIC 2019 data is provided courtesy of the following sources:
+  BCN_20000 Dataset: (c) Department of Dermatology, Hospital Clínic de Barcelona
+  HAM10000 Dataset: (c) by ViDIR Group, Department of Dermatology, Medical University of Vienna; https://doi.org/10.1038/sdata.2018.161
+  MSK Dataset: (c) Anonymous; https://arxiv.org/abs/1710.05006 ; https://arxiv.org/abs/1902.03368
