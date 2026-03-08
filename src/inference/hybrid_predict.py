@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 
 class DermatologistAI:
 
-    #This class is used to load the trained models and make predictions.
+    
     def __init__(self, cv_model_path, nlp_model_path):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -29,13 +29,13 @@ class DermatologistAI:
         
         self.cv_model.to(self.device) 
         self.cv_model.eval()
-        #We define the transformations to be applied to the images.
+        
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
-        #We load the tokenizer and model for the NLP part.
+        
         self.nlp_tokenizer = DistilBertTokenizer.from_pretrained(nlp_model_path)
         self.nlp_model = DistilBertForSequenceClassification.from_pretrained(nlp_model_path)
         self.nlp_model.to(self.device)
@@ -48,11 +48,11 @@ class DermatologistAI:
         img_tensor = self.transform(img)
         img_tensor = img_tensor.unsqueeze(0).to(self.device)
 
-        with torch.no_grad(): #We turn off the gradient calculation to speed up the process.
+        with torch.no_grad(): 
             outputs = self.cv_model(img_tensor)
             probs = F.softmax(outputs,dim=1)
 
-        cv_risk_prob =(probs[0][0] + probs[0][1] + probs[0][4]).item() #We extract the probability of the first class (benign).
+        cv_risk_prob =(probs[0][0] + probs[0][1] + probs[0][4]).item() 
         normal_prob = (probs[0][2] + probs[0][3] + probs[0][5]).item()
         cv_risk_prob = 1.0 - normal_prob
         return cv_risk_prob
@@ -60,14 +60,14 @@ class DermatologistAI:
     def analyze_symptom(self, text):
 
         inputs = self.nlp_tokenizer(text, return_tensors="pt", truncation=True, padding=True).to(self.device)
-        with torch.no_grad(): #We turn off the gradient calculation to speed up the process.
+        with torch.no_grad(): 
             outputs = self.nlp_model(**inputs)
             logits = outputs.logits
             probs=F.softmax(logits,dim=1)
             nlp_risk_prob = probs[0][1].item()
         return nlp_risk_prob
 
-    #This function is used to combine the results of the two models.
+    
     
     def hybrid_diagnosis(self, image_path, text, cv_weight=0.7, nlp_weight=0.3):
         cv_score = self.analyze_image(image_path)
@@ -86,7 +86,7 @@ class DermatologistAI:
             "Diagnosis": diagnosis
         }
 
-#This block is used to test the model.
+
 if __name__ == "__main__":
     CV_PATH = "models/best_lightning_model-v4.ckpt"
     NLP_PATH = "models/nlp_v1"
@@ -103,9 +103,7 @@ if __name__ == "__main__":
     result = ai_asistan.hybrid_diagnosis(image_path=test_image, text=test_text, cv_weight=0.7, nlp_weight=0.3)
     
 
-    print("\n" + "="*40)
     print(f" Image Risk : %{result['Image_Risk']*100:.2f}")
     print(f" Complaint Risk : %{result['Complaint_Risk']*100:.2f}")
     print(f" HYBRID SCORE : %{result['Hybrid_Score']*100:.2f}")
     print(f" DIAGNOSIS : {result['Diagnosis']}")
-    print("="*40)

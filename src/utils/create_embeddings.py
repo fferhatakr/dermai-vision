@@ -18,7 +18,7 @@ def find_latest_checkpoint():
 
 def load_model(ckpt_path):
     print(f"Loading model: {ckpt_path}")
-    # Initialize model with dummy parameters to load weights safely
+    
     model = TripletLightning.load_from_checkpoint(
         ckpt_path,
         learning_rate=0.001, 
@@ -58,7 +58,7 @@ def save_artifacts(embeddings, labels, save_dir="Data/artifacts"):
     
     ref_embeddings = torch.cat(embeddings)
     
-    # Handle both tensor and integer labels
+    
     if isinstance(labels[0], torch.Tensor):
         ref_labels = torch.stack(labels)
     else:

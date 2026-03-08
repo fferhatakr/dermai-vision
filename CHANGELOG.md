@@ -2,8 +2,18 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v4.0.0] - Diagnostic Calibration Update
+###  Major Pivot
+- **Recall (Sensitivity) Focus:** Rather than the model's overall success, priority was given to Recall success so that it would not "miss" critical cases such as melanoma and BCC.
+- **Discriminative Diagnosis (Top-3):** The model now lists the three most probable diseases with their percentages instead of a single result.
+
 ## [v3.0.0] - The "Honest AI" Update (TTA & Robust Classification)
-### 🚀 Major Pivot
+### Additions and Corrections
+- **Dynamic Threshold Values:** The risk warning system was refined by setting thresholds of 18% for melanoma and 25% for BCC.
+- **Hybrid Score Synchronisation:** The actual risk score, weighted by Image (80%) and Clinical History (20%), was successfully integrated into the Streamlit interface.
+- **Interface Improvement:** Images were fixed at 350px; Original and Heatmap (Grad-CAM) were made more readable side-by-side.
+- **Architectural Update:** Migrated to FastAPI lifespan architecture and optimised Grad-CAM layer focus (-2).
+
 - **Architectural Shift:** Transitioned from Metric Learning (Triplet Loss/KNN) to a **Weighted Classification** paradigm. The previous retrieval system was prone to overfitting on majority classes. The new architecture prioritizes **Recall on malignant classes** over general accuracy.
 - **Inference Strategy:** Replaced single-pass inference with **Test-Time Augmentation (TTA)**. The model now "looks" at the lesion from 3 different angles (Original, H-Flip, V-Flip) and averages the probabilities to ensure diagnostic stability.
 
