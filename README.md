@@ -22,7 +22,7 @@ This project is an end-to-end deep learning-based skin cancer classification and
 ##  What's New in v4.0.0: The Clinical Champion (Current)
 The project has evolved from a "similar image search" tool into a highly accurate Clinical Diagnosis Assistant:
 
-* **EfficientNet-B3 Backbone:** Moving away from the lightweight models used in previous versions, the switch was made to EfficientNet-B3, which can analyse leather texture at a micro level. The success rate was brought down to the 75-80 per cent range.
+* **EfficientNet-B3 Backbone:** Moving away from the lightweight models used in previous versions, the switch was made to EfficientNet-B3, which can analyse leather texture at a micro level. The accuracy was improved to the 75-80% range.
 * **300x300 High-Res Analysis:** Training was conducted at a resolution of 300x300, exceeding standard resolutions; lesion boundaries and irregularities began to be captured more clearly.
 * **Top-3 Differential Diagnosis:** The system no longer simply states "High risk"; it ranks the three most likely conditions (e.g. 60% melanoma, 20% nevus, 10% BCC) with their respective probabilities.
 
@@ -64,8 +64,8 @@ This section tracks the engineering evolution of the project's infrastructure.
 * **`v2.4.0` - Engineering Excellence (CI/CD):** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
 * **`v2.5.0` - Scaling Intelligence:** Major backbone upgrade. Switched from MobileNetV3-Small to MobileNetV3-Large (V2), expanding the feature embedding space to 960 dimensions. Integrated rigorous Data Augmentation (Blur, Rotation) and strict Train/Val splitting, achieving a state-of-the-art 94.75% Recall@5.
 * **`v2.6.0` - Inference Optimization and Dual-Engine Support** Integrated ONNX Runtime to optimize MobileNetV3-Large performance, significantly reducing inference latency for CPU-based local deployment. Developed a dual-engine architecture in the UI that supports switching between high-speed screening and explainable Grad-CAM analysis.
-* **`v3.0.0` - The "Honest AI" Update** The "Honest AI" Update: A Dynamic Thresholding system has been integrated to improve recall success (MEL 18%, BCC 25%). The hybrid risk engine, which combines image and clinical history data at a ratio of 0.8/0.2, has been synchronised with the Streamlit interface. The FastAPI architecture has been migrated to a modern lifespan structure.
-* **`v4.0.0` - The "Clinical Champion" Update (Current)** The system's brain was upgraded to the EfficientNet-B3 architecture, maximising its visual analysis capacity. Training resolution was reduced to 300x300 pixels, preserving tissue details. Integration of Focal Loss optimised learning success in rare cancer types (e.g., melanoma). The interface has been updated to a side-by-side comparative analysis mode in accordance with clinical standards (350px fixed width).
+* **`v3.0.0` - The "Honest AI" Update** The "Honest AI" Update: A Dynamic Thresholding system has been integrated to improve recall success. The hybrid risk engine, which combines image and clinical history data at a ratio of 0.8/0.2, has been synchronized with the Streamlit interface. The FastAPI architecture has been migrated to a modern lifespan structure.
+* **`v4.0.0` - The "Clinical Champion" Update (Current)** The system's brain was upgraded to the EfficientNet-B3 architecture, maximizing its visual analysis capacity. Training resolution was reduced to 300x300 pixels, preserving tissue details. Integration of Focal Loss optimised learning success in rare cancer types (e.g., melanoma). The interface has been updated to a side-by-side comparative analysis mode in accordance with clinical standards (350px fixed width).
 
 
 
@@ -123,7 +123,7 @@ To ensure reliability, the models are evaluated not just on accuracy, but on the
 | **`Vision-Embed-v2`** | MobileNetV3 + Triplet | 0.87 | 0.82 | ~45ms |
 | **`Vision-Hybrid-v3`** | MobileNetV3-Large + Triplet | 94.75% | 960 | ~65ms |
 | **`Vision-Fast-v1`** | **MobileNetV3-Large + ONNX** | **94.75%** | **960** | **~38ms** |
-| **`Vision-v4-Champion`** | **EfficientNet-B3** |  |  |  |
+| **`Vision-v4-Champion`** | **EfficientNet-B3** |Top-1 Accuracy:%75-80 |  |  |
 
 ###  Reproducibility & Training Details
 Industry-standard reproducibility is maintained by tracking all hyperparameters and system configurations.
