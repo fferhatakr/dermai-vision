@@ -29,16 +29,16 @@ The project has officially transitioned from a pure Computer Vision task to a ho
 ##  System Architecture Flow
 
 ```mermaid
-graph TD
-    A[Patient Image] -->|300x300 Resizing + Vignette| B(EfficientNet-B3 + TTA)
-    B -->|Softmax Probabilities| C[Visual Diagnosis OOF Predictions]
-    D[Clinical Metadata] -->|Age, Sex, Anatomical Site| E[One-Hot Encoding]
+graph LR
+    A[Patient Image] -->|300x300 + Vignette| B(EfficientNet-B3 + TTA)
+    B -->|Softmax| C[Visual OOF Predictions]
+    D[Clinical Metadata] -->|Age, Sex, Site| E[One-Hot Encoding]
     C --> F[Late Fusion Concat]
     E --> F
     F -->|Input| G{XGBoost Meta-Learner}
-    G -->|Hybrid Probabilities| H{Safety Override Logic}
-    H -->|If CNN visual alert > 40%| I[Critical Alert: RISKY]
-    H -->|If Clinical Consensus| J[Final Diagnosis & Heatmap]
+    G -->|Hybrid Probs| H{Safety Override}
+    H -->|CNN alert > 40%| I[Critical Alert: RISKY]
+    H -->|Consensus| J[Final Diagnosis]
 ```
 ---
 ## Clinical Dashboard (Streamlit UI)
@@ -46,14 +46,29 @@ graph TD
 The system features a dual-engine medical interface built with Streamlit, allowing clinicians to input patient metadata and upload dermoscopic images for real-time analysis.
 
 
+
 <div align="center">
-  <img src="assets/ui_input.jpg" width="45%" title="Patient Input">
-  <img src="assets/ui_heatmap.jpg" width="50%" title="Grad-CAM Heatmap">
+  <h3>1. Patient Data & Lesion Input</h3>
+  <a href="assets/ui_input.jpg" target="_blank">
+    <img src="assets/ui_input.jpg" width="800" title="Click to enlarge">
+  </a>
   
   <br><br>
+
+  <h3>2. Hybrid Analysis & Safety Conflict Panel</h3>
+  <a href="assets/ui_analysis.jpg" target="_blank">
+    <img src="assets/ui_analysis.jpg" width="800" title="Click to enlarge">
+  </a>
   
-  <img src="assets/ui_analysis.jpg" width="75%" title="Hybrid Analysis">
+  <br><br>
+
+  <h3>3. Explainable AI (Grad-CAM Heatmap)</h3>
+  <a href="assets/ui_heatmap.jpg" target="_blank">
+    <img src="assets/ui_heatmap.jpg" width="800" title="Click to enlarge">
+  </a>
 </div>
+
+
 
 ### Key UI Features:
 - **Visual XAI (Grad-CAM):** Side-by-side comparison of the original lesion and the AI's focal heatmaps.
