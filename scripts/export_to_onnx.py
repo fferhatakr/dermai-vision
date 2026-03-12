@@ -4,7 +4,7 @@ import os
 import glob
 import sys
 sys.path.append(os.getcwd())
-from src.engine.train_class_v2 import UltimateDermatolog as ModelClass
+from legacy.trainer.train_class import UltimateDermatolog as ModelClass
 
 
 
