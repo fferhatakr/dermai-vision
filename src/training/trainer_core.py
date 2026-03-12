@@ -32,7 +32,7 @@ class DermatologLightning(pl.LightningModule):
         self.f1_per_class = F1Score(task="multiclass", num_classes=8, average=None)
 
     def save_activations(self, module, input, output):
-        print("Activation shape:", output.shape)
+        
         self.activations = output
 
     def backward_gradients(self, module, grad_input, grad_output):
@@ -171,7 +171,7 @@ class TripletLightning(pl.LightningModule):
 
 
     def save_activations(self, module, input, output):
-        print("Activation shape:", output.shape)
+        
         self.activations = output
 
     def backward_gradients(self,module, grad_input, grad_output):
