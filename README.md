@@ -1,8 +1,10 @@
 
-# DermaScan AI - Multimodal Clinical Decision Support System (v5.0.0)
+# DermaScan AI - Multimodal Clinical Decision Support System (v5.1.0)
 
 ![Accuracy](https://img.shields.io/badge/General_Accuracy-~81%25-blue)
 ![Recall (Melanoma)](https://img.shields.io/badge/Recall_Melanoma-~82%25-green)
+![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
+![DockerHub](https://img.shields.io/badge/Image-DockerHub-0db7ed?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
 ![Meta-Learner](https://img.shields.io/badge/Meta_Learner-XGBoost-darkred)
 ![Technique](https://img.shields.io/badge/Tech-Focal_Loss_%2B_5--Fold_CV-orange)
@@ -17,17 +19,18 @@
 
 This project is an end-to-end deep learning-based skin cancer classification system. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, and finally evolving into a **Multimodal Meta-Learning System** that fuses visual feature extraction (EfficientNet-B3) with clinical tabular metadata (Age, Sex, Anatomical Site) using **XGBoost**.
 
-##  What's New in v5.0.0: The Meta-Learner & Safety Update (Current)
+##  What's New in v5.1.0: The Meta-Learner & Safety Update (Current)
 The project has officially transitioned from a pure Computer Vision task to a holistic Clinical Diagnostic Assistant. 
 
 * **Clinical Metadata Fusion (Late Fusion):** The system no longer relies solely on pixels. It fuses the CNN's (EfficientNet-B3) visual probabilities with the patient's Age, Gender, and Anatomical Site. An XGBoost Meta-Learner processes this combined data to produce a highly accurate, clinically contextualized diagnosis.
 * **Safety Override Mechanism:** In medical AI, False Negatives are fatal. A hardcoded safety logic was introduced: Even if the Meta-Learner predicts a benign lesion (e.g., due to young patient age), if the Vision model's visual suspicion for malignancy exceeds 40%, the system overrides the decision and triggers a **"RISKY (VISUAL ALERT)"** warning.
 * **Scientific Robustness (5-Fold CV & OOF):** To prevent "lucky splits" and data leakage during stacking, the system was validated using a rigorous 5-Fold Cross Validation pipeline. The XGBoost meta-learner was strictly trained on Out-Of-Fold (OOF) predictions.
 * **Refined Preprocessing:** Replaced hard edge-cropping with a dynamic Gaussian Vignette filter to maintain peripheral focus without losing corner lesion details.
-
+* **Production-Ready Containerization:** The entire backend is now containerized using Docker. This ensures 100% environment reproducibility, eliminating "it works on my machine" issues and allowing one-click deployment to any cloud provider.
 
 ##  System Architecture Flow
 
+**Deployment Note:** The inference engine is served via a Dockerized FastAPI container, decoupled from the Streamlit UI for scalable multimodal processing.
 ```mermaid
 graph LR
     A[Patient Image] -->|300x300 + Vignette| B(EfficientNet-B3 + TTA)
@@ -118,7 +121,7 @@ This section tracks the evolution of the AI models.
 
 
 
-##  Architecture Decisions & Evaluation (Updated v4.0.0)
+##  Architecture Decisions & Evaluation (Updated v5.0.0)
 
 The critical architectural choices made to transform the project from the research phase into an industrial product are detailed below:
 
@@ -186,6 +189,9 @@ AI_DET_PROJECT/
 │   └──  utils/
 │       ├── create_meta_dataset.py
 │       └── helpers.py
+├── test_samples/
+├── .dockerignore
+├── Dockerfile
 ├── test/                     
 ├── .env                      
 ├── .gitignore
@@ -209,6 +215,8 @@ AI_DET_PROJECT/
 - **Out-of-Fold (OOF) Stacking:** Preventing data leakage during the training of the meta-learner by strictly using 5-Fold CV OOF predictions.
 - **Safety-First Thresholding (Safety Override):** A custom algorithmic lock that prevents statistical bias (e.g., young age) from masking strong visual indicators of malignancy.
 - **Inference Strategy:** Test-Time Augmentation (TTA) & Sensitivity-Driven Thresholding (MEL/BCC specific threshold values).
+- **Infrastructure:** Docker, Docker Hub (Containerization for zero-dependency deployment).
+- **CI/CD Readiness:** Standardized environment locking via requirements.txt and Docker layer caching.
 
 
 
@@ -223,6 +231,18 @@ AI_DET_PROJECT/
 
 
 ## Installation & Setup
+
+**One-Click Deployment (Recommended)**
+
+The easiest way to run DermaScan AI is using Docker. This avoids manual dependency installation:
+
+```bash
+# Pull the pre-built image from Docker Hub
+docker pull technull1/dermascan-api:latest
+
+# Run the containerized API
+docker run -p 8000:8000 technull1/dermascan-api
+```
 
 **1. Clone the Repository:**
 
