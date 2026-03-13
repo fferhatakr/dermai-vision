@@ -75,7 +75,7 @@ if analyze_btn and image_ready:
                 "needs_heatmap": "true"
             }
             
-            response = requests.post("http://127.0.0.1:8000/analyze", files=files, data=data)
+            response = requests.post("https://technull1-dermascan-ai.hf.space/analyze", files=files, data=data)
             
             if response.status_code == 200:
                 result = response.json()
