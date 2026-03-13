@@ -2,6 +2,18 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v5.1.0] - Containerization & Production Readiness
+### Added
+- **Dockerized Backend (FastAPI):** Created a multi-stage `python:3.10-slim` Dockerfile to encapsulate the inference engine, including PyTorch and XGBoost dependencies.
+- **Environment Standardization:** Locked all dependencies in `requirements.txt` to ensure 100% reproducibility across OS environments (Windows/Linux/macOS).
+- **Docker Hub Integration:** Successfully pushed the core API image (`technull1/dermascan-api`) to Docker Hub for seamless cloud deployment.
+- **Security & Privacy (Shielding):** Implemented strict `.dockerignore` and `.gitignore` policies to prevent leakage of sensitive environment variables (`.env`) and local training artifacts.
+- **Automated Test Samples:** Integrated an internal sample selector in the UI to allow instant testing of high-risk cases without requiring manual user uploads.
+
+### Improved
+- **Cold Boot Optimization:** Leveraged Docker layer caching to reduce build times for iterative updates.
+- **Image Optimization:** Switched to a slim Linux-based container, significantly reducing the production footprint.
+
 ## [v5.0.0] - The "Meta-Learner & Clinical Safety" Update (Current)
 ###  Major Pivot
 - **Multimodal Late Fusion:** Deprecated the free-text NLP/DistilBERT symptom analysis. Transitioned to structured clinical metadata (Age, Sex, Anatomical Site) using an **XGBoost Meta-Learner** to evaluate probabilistic combinations.

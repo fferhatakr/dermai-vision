@@ -5,9 +5,9 @@ import io
 import base64
 import cv2
 import numpy as np
+import os
 
 st.set_page_config(page_title="DermaScan AI", page_icon="", layout="wide")
-
 
 st.markdown("""
     <style>
@@ -18,26 +18,38 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("DermaScan AI: Meta-Learning Fusion System")
+st.warning("WARNING:This application is solely an engineering portfolio project. It is not a medical diagnostic device. Please consult a dermatologist regarding any genuine health concerns")
 st.markdown("Combined analysis of Deep Learning (CNN) and Clinical Metadata (XGBoost)")
 st.markdown("---")
 
 col_input, col_meta = st.columns([1, 1])
 
+image = None
+image_ready = False
+
 with col_input:
     st.subheader("1.Image Upload")
-    uploaded_file = st.file_uploader("Select Dermatoscopic Image", type=["jpg", "png", "jpeg"])
+    
+    sample_folder = "test_samples"
+    samples = os.listdir(sample_folder) if os.path.exists(sample_folder) else []
+    selected_sample = st.selectbox("Select a test sample", ["None"] + samples)
+    
+    uploaded_file = st.file_uploader("Or Select Dermatoscopic Image", type=["jpg", "png", "jpeg"])
+    
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
+        image_ready = True
         st.image(image, caption="Current Scan", use_container_width=True)
+    elif selected_sample != "None":
+        image = Image.open(os.path.join(sample_folder, selected_sample)).convert("RGB")
+        image_ready = True
+        st.image(image, caption=f"Sample: {selected_sample}", use_container_width=True)
 
 with col_meta:
     st.subheader("2.Clinical Metadata")
     
-    
     age = st.number_input("Patient Age:", min_value=0, max_value=120, value=30)
-    
     sex = st.selectbox("Gender:", ["male", "female", "unknown"])
-    
     
     site_options = [
         'anterior torso', 'upper extremity', 'posterior torso', 
@@ -48,16 +60,13 @@ with col_meta:
     st.info("The Meta-Learner combines these clinical factors with visual patterns for a higher accuracy.")
     analyze_btn = st.button("EXECUTE HYBRID ANALYSIS", type="primary", use_container_width=True)
 
-
-if analyze_btn and uploaded_file:
+if analyze_btn and image_ready:
     with st.spinner("Deep Learning & XGBoost Fusion in progress"):
         try:
-            
             img_byte_arr = io.BytesIO()
             image.save(img_byte_arr, format="JPEG")
             
             files = {"file": img_byte_arr.getvalue()}
-            
             
             data = {
                 "age": str(age),
@@ -66,13 +75,11 @@ if analyze_btn and uploaded_file:
                 "needs_heatmap": "true"
             }
             
-           
             response = requests.post("http://127.0.0.1:8000/analyze", files=files, data=data)
             
             if response.status_code == 200:
                 result = response.json()
                 st.divider()
-                
                 
                 st.subheader("Debug Mode: CNN - Meta-Learner ")
                 db_col1, db_col2 = st.columns(2)
@@ -89,7 +96,6 @@ if analyze_btn and uploaded_file:
                     st.markdown(f"**Confidence:** %{result['confidence']*100:.1f}")
                     st.progress(float(result['confidence']))
 
-                
                 if result['debug']['conflict']:
                     st.error(f"**CLINICAL CONFLICT:** Metadata (Age/Sex/Site) changed the visual diagnosis from **{result['debug']['cnn_diagnosis']}** to **{result['diagnosis']}**.")
                 else:
@@ -109,7 +115,6 @@ if analyze_btn and uploaded_file:
                 
                 st.divider()
 
-                
                 if "all_probabilities" in result:
                     st.subheader("Differential Diagnosis (Probabilities)")
                     probs = result["all_probabilities"]
@@ -119,7 +124,6 @@ if analyze_btn and uploaded_file:
                 
                 st.divider()
 
-                
                 c1, c2 = st.columns(2)
                 with c1:
                     st.subheader("Original Scan")
@@ -132,7 +136,6 @@ if analyze_btn and uploaded_file:
                         np_arr = np.frombuffer(decoded, np.uint8)
                         hm_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                         hm_img = cv2.cvtColor(hm_img, cv2.COLOR_BGR2RGB)
-                        
                         
                         orig_cv = np.array(image)
                         hm_img = cv2.resize(hm_img, (orig_cv.shape[1], orig_cv.shape[0]))
