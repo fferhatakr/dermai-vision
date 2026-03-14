@@ -16,6 +16,21 @@
 **This project is an AI research and engineering demonstration.**
 **It is NOT intended for real medical diagnosis.**
 
+**Ethical Disclaimer & Data Privacy Policy**
+This application is an engineering portfolio project and AI research demonstration. It is **NOT** intended for real medical diagnosis, treatment, or professional advice. Always consult a qualified dermatologist for medical concerns.
+**Zero Data Retention:** User privacy is our top priority. Uploaded images are processed strictly in-memory (RAM) during the inference pipeline and are **instantly destroyed** once the analysis is complete. No data, images, or personal information are stored, saved, or logged on any server.
+
+---
+
+## How It Works: The Architecture
+
+DermaScan AI is not a "black box." It is built on a transparent, scalable, and modern Machine Learning Operations (MLOps) pipeline:
+
+* **The Brain (Deep Learning):** The core vision engine is powered by **EfficientNet-B3**, a state-of-the-art Convolutional Neural Network (CNN) known for its optimal balance of accuracy and computational efficiency. 
+* **The Engine (Backend API):** A high-speed **FastAPI** server handles the model inference. It receives image data, preprocesses it for the neural network, and returns structured probability scores.
+* **The Cloud (Deployment):** The entire backend, including the heavy 2.3GB model payload, is fully containerized using **Docker** and deployed autonomously on **Hugging Face Spaces**.
+* **The Face (Frontend):** A responsive **Streamlit** web application serves as the user interface, establishing a seamless bridge with the remote cloud API.
+
 
 This project is an end-to-end deep learning-based skin cancer classification system. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, and finally evolving into a **Multimodal Meta-Learning System** that fuses visual feature extraction (EfficientNet-B3) with clinical tabular metadata (Age, Sex, Anatomical Site) using **XGBoost**.
 
