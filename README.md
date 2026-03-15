@@ -34,14 +34,6 @@ DermaScan AI is not a "black box." It is built on a transparent, scalable, and m
 
 This project is an end-to-end deep learning-based skin cancer classification system. It covers a complete engineering journey: starting from flat-layer models, extending to custom CNNs, and finally evolving into a **Multimodal Meta-Learning System** that fuses visual feature extraction (EfficientNet-B3) with clinical tabular metadata (Age, Sex, Anatomical Site) using **XGBoost**.
 
-##  What's New in v5.1.0: The Meta-Learner & Safety Update (Current)
-The project has officially transitioned from a pure Computer Vision task to a holistic Clinical Diagnostic Assistant. 
-
-* **Clinical Metadata Fusion (Late Fusion):** The system no longer relies solely on pixels. It fuses the CNN's (EfficientNet-B3) visual probabilities with the patient's Age, Gender, and Anatomical Site. An XGBoost Meta-Learner processes this combined data to produce a highly accurate, clinically contextualized diagnosis.
-* **Safety Override Mechanism:** In medical AI, False Negatives are fatal. A hardcoded safety logic was introduced: Even if the Meta-Learner predicts a benign lesion (e.g., due to young patient age), if the Vision model's visual suspicion for malignancy exceeds 40%, the system overrides the decision and triggers a **"RISKY (VISUAL ALERT)"** warning.
-* **Scientific Robustness (5-Fold CV & OOF):** To prevent "lucky splits" and data leakage during stacking, the system was validated using a rigorous 5-Fold Cross Validation pipeline. The XGBoost meta-learner was strictly trained on Out-Of-Fold (OOF) predictions.
-* **Refined Preprocessing:** Replaced hard edge-cropping with a dynamic Gaussian Vignette filter to maintain peripheral focus without losing corner lesion details.
-* **Production-Ready Containerization:** The entire backend is now containerized using Docker. This ensures 100% environment reproducibility, eliminating "it works on my machine" issues and allowing one-click deployment to any cloud provider.
 
 ##  System Architecture Flow
 
@@ -88,34 +80,14 @@ The system features a dual-engine medical interface built with Streamlit, allowi
 
 
 
-### Key UI Features:
+## Key UI Features:
 - **Visual XAI (Grad-CAM):** Side-by-side comparison of the original lesion and the AI's focal heatmaps.
 - **Debug & Conflict Panel:** Real-time transparency showing the exact probability distributions of both the Vision Pipeline (CNN) and the Meta-Learner (XGBoost).
 - **Safety Alerts:** Dynamic UI elements that turn red and trigger a **"Conflict"** warning if the visual suspicion overrides the clinical metadata bias.
 
-### Beyond Pure Vision: The Multimodal Pivot
+## Beyond Pure Vision: The Multimodal Pivot
 
-While earlier versions (v4.0.0) successfully transitioned from image retrieval (CBIR) to direct classification, v5.0.0 addresses a fundamental flaw in pure computer vision: clinical context blindness. A lesion on a 20-year-old might be statistically benign, while the exact same visual pattern on an 80-year-old could be highly suspicious. By pivoting to a **Multimodal Diagnostic System**, we no longer rely on naive pixel-based guesses. The system now evaluates structural visual features strictly alongside patient metadata, producing a holistic, real-world clinical decision.
-
-##  Engineering & Research Journey
-
-Following MLOps best practices, this project separates the **Software/System Versioning** (the pipeline and application logic) from the **Model Registry** (the architectural AI experiments).
-
-###  System Architecture & Pipeline Releases (Software)
-This section tracks the engineering evolution of the project's infrastructure.
-
-* **`v1.0.0` - Initial Prototype:** Manual training scripts, data augmentation, and basic PyTorch dataloaders established.
-* **`v1.1.0` - Lightning Refactor:** Training pipeline migrated to PyTorch Lightning. Added `ReduceLROnPlateau` for dynamic learning rate adjustments and modularized the codebase.
-* **`v2.0.0` - The CBIR Pivot:** Major architectural shift. Transitioned from standard classification to a Content-Based Image Retrieval (CBIR) pipeline using K-Nearest Neighbors (KNN) and Triplet Loss. 
-* **`v2.1.0` - Full-Stack Integration:**  End-to-end system deployed. Built a FastAPI backend for real-time inference and L2 tensor normalization, coupled with an interactive Streamlit web interface.
-* **`v2.2.0` - Multimodal Fusion: (New)** Integrated NLP capabilities to process patient anamnesis (text) alongside lesion images. Implemented a Late Fusion strategy to combine visual embeddings with textual features for a hybrid diagnostic score.
-* **`v2.3.0` - Explainable AI (XAI): (New)** Added an interpretability layer using Grad-CAM. The system now generates heatmaps to visualize the specific lesion regions influencing the model's retrieval decision, increasing clinical trust.
-* **`v2.4.0` - Engineering Excellence (CI/CD):** Established a robust DevOps pipeline. Implemented comprehensive unit testing with Pytest and automated the testing workflow using GitHub Actions, ensuring code stability and regression prevention on every push.
-* **`v2.5.0` - Scaling Intelligence:** Major backbone upgrade. Switched from MobileNetV3-Small to MobileNetV3-Large (V2), expanding the feature embedding space to 960 dimensions. Integrated rigorous Data Augmentation (Blur, Rotation) and strict Train/Val splitting, achieving a state-of-the-art 94.75% Recall@5.
-* **`v2.6.0` - Inference Optimization and Dual-Engine Support** Integrated ONNX Runtime to optimize MobileNetV3-Large performance, significantly reducing inference latency for CPU-based local deployment. Developed a dual-engine architecture in the UI that supports switching between high-speed screening and explainable Grad-CAM analysis.
-* **`v3.0.0` - The "Honest AI" Update** The "Honest AI" Update: A Dynamic Thresholding system has been integrated to improve recall success. The hybrid risk engine, which combines image and clinical history data, has been synchronized with the Streamlit interface. The FastAPI architecture has been migrated to a modern lifespan structure.
-* **`v4.0.0` - The "Clinical Champion" Update:** The system's brain was upgraded to the EfficientNet-B3 architecture. Training resolution was increased to 300x300. Integration of Focal Loss optimised learning success in rare cancer types (e.g., melanoma).
-* **`v5.0.0` - The "Meta-Learner & Safety" Update (Current):** The ultimate multimodal leap. Replaced DistilBERT NLP with structured clinical metadata (Age, Sex, Site). Integrated an XGBoost Meta-Learner via Late Fusion. Implemented a 5-Fold Cross Validation pipeline with OOF predictions. Introduced a hardcoded "Safety Override" logic to prioritize visual CNN alerts over statistical biases, maximizing Melanoma recall (~82%) and medical ethics compliance.
+- **While earlier versions (v4.0.0) successfully transitioned from image retrieval (CBIR) to direct classification, v5.0.0 addresses a fundamental flaw in pure computer vision: clinical context blindness. A lesion on a 20-year-old might be statistically benign, while the exact same visual pattern on an 80-year-old could be highly suspicious. By pivoting to a **Multimodal Diagnostic System**, we no longer rely on naive pixel-based guesses. The system now evaluates structural visual features strictly alongside patient metadata, producing a holistic, real-world clinical decision.**
 
 
 
@@ -221,14 +193,8 @@ AI_DET_PROJECT/
 
 ##  Technologies and Techniques Used
 
-- **Architectures:** EfficientNet-B3 (v4.0.0 Upgrade) - Feature extraction has been maximised by transitioning to a wider and deeper architecture than MobileNet.
 - **Data Scaling: Dataset expansion & change.** The model's generalisation ability was improved by expanding the dataset with higher quality and more balanced samples.  
-- **Input Resolution:** 300x300 High-Resolution Input. (Resolution increased from 224 to 300 to reduce loss of lesion detail).
 - **Explainable AI (XAI): Grad-CAM** (Penultimate Layer -2). Focus maps visualising the decision-making mechanism.
-- **Optimization Strategy:** Focal Loss & Weighted Random Sampler. Advanced optimisation focusing on rare classes (DF, VASC, etc.) to resolve class imbalance.
-- **Multimodal Late Fusion:** Integration of XGBoost to combine CNN softmax outputs with structured clinical metadata (Age, Sex, Site).
-- **Out-of-Fold (OOF) Stacking:** Preventing data leakage during the training of the meta-learner by strictly using 5-Fold CV OOF predictions.
-- **Safety-First Thresholding (Safety Override):** A custom algorithmic lock that prevents statistical bias (e.g., young age) from masking strong visual indicators of malignancy.
 - **Inference Strategy:** Test-Time Augmentation (TTA) & Sensitivity-Driven Thresholding (MEL/BCC specific threshold values).
 - **Infrastructure:** Docker, Docker Hub (Containerization for zero-dependency deployment).
 - **CI/CD Readiness:** Standardized environment locking via requirements.txt and Docker layer caching.
@@ -281,7 +247,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-#  Running the System (v5.0.0 - Classification Engine)
+## Running the System (v5.0.0 - Classification Engine)
 
 This project has a dual-stack architecture. You must run the FastAPI Backend and Streamlit Frontend units on separate terminals.
 
@@ -309,15 +275,6 @@ python src/engine/train_kfold_v2.py
 # Runs the evaluation engine on the test set with 3-view voting
 python src/engine/evaluate_kfold.py
 ```
-
-## Legacy Features (Architectural Evolution)
-
-* **NLP & Text Anamnesis (v2.x - v4.x):** The free-text symptom analysis using DistilBERT has been deprecated. It was replaced by structured tabular metadata (Age, Sex, Site) feeding into an XGBoost Meta-Learner for higher clinical reliability and stability.
-* **KNN & Vector Search (v2.x.x):** The project no longer uses similarity searches. It transitioned directly to a probability-based Multi-class Diagnosis structure.
-* **Triplet Loss Training:** To reduce complexity and clarify class distinctions, the metric learning protocol was disabled.
-* **MobileNetV3 Backbone:** Replaced by **EfficientNet-B3**, which performs much deeper tissue analysis.
-* **Standard Weighted Cross-Entropy:** Replaced by the **Focal Loss** architecture to learn the "hard examples" (e.g., Melanoma) efficiently.
-
 
 
 ### Acknowledgements

@@ -50,6 +50,13 @@ All notable architectural changes, pipeline upgrades, and model iterations for t
 - **KNN Retrieval Engine:** The vector database approach has been archived in favor of direct probabilistic classification.
 - **Legacy Triplet Loss:** Removed from the active production pipeline to reduce complexity.
 
+## [v2.6.0] - Inference Optimization and Dual-Engine Support
+### Added
+- Integrated ONNX Runtime to optimize MobileNetV3-Large performance,
+  reducing inference latency for CPU-based local deployment.
+- Developed a dual-engine architecture supporting switching between
+  high-speed screening and explainable Grad-CAM analysis.
+
 
 ## [v2.5.0] - Scaling Intelligence (Large Backbone)
 ### Changed
@@ -87,6 +94,11 @@ All notable architectural changes, pipeline upgrades, and model iterations for t
 - Engineered an interactive clinical frontend via Streamlit, enabling seamless image upload and instant diagnostic feedback.
 ### Changed
 - Transitioned the core modeling paradigm from static softmax classification to a dynamic Content-Based Image Retrieval (CBIR) architecture using Triplet Margin Loss.
+
+## [v2.0.0] - The CBIR Pivot
+### Changed
+- Major architectural shift from standard classification to a 
+  Content-Based Image Retrieval (CBIR) pipeline using KNN and Triplet Loss.
 
 ## [v1.1.0] - MLOps & Pipeline Standardization
 ### Changed
