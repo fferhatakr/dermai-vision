@@ -18,8 +18,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("DermaScan AI: Meta-Learning Fusion System")
-st.warning("WARNING:This application is solely an engineering portfolio project. It is not a medical diagnostic device. Please consult a dermatologist regarding any genuine health concerns")
-st.warning("WARNING:Zero Data Retention:User privacy is our top priority. Uploaded images are processed strictly in-memory (RAM) during the inference pipeline and are **instantly destroyed** once the analysis is complete. No data, images, or personal information are stored, saved, or logged on any server.")
+st.warning("**Disclaimer:** This application is solely an engineering portfolio project. It is not a medical diagnostic device. Please consult a dermatologist regarding any genuine health concerns.")
+st.info("**Zero Data Retention:** User privacy is our top priority. Uploaded images are processed strictly in-memory (RAM) during the inference pipeline and are instantly destroyed once the analysis is complete. No data is stored on any server.")
 st.markdown("Combined analysis of Deep Learning (CNN) and Clinical Metadata (XGBoost)")
 st.markdown("---")
 
