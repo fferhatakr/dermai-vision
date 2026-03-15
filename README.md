@@ -247,7 +247,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-## Running the System (v5.0.0 - Classification Engine)
+## Running the System (v5.1.0 - Classification Engine)
 
 This project has a dual-stack architecture. You must run the FastAPI Backend and Streamlit Frontend units on separate terminals.
 
