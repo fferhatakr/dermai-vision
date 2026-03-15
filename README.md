@@ -147,27 +147,29 @@ AI_DET_PROJECT/
 │       └── python-app.yml
 │
 ├── configs/                  
-│
+│   └── .gitkeep
 ├── Data/                     # Dataset 
 │   ├── processed/            
 │   └── raw/             
 ├── scripts/ 
 │   └── export_to_onnx.py 
-│
 ├── src/                      # Source code
-│   ├── api/                  
-│   │   └── main.py
+│   ├── api/    
+│   │   ├── gradcam.py
+│   │   ├── inference.py
+│   │   ├── main.py
+│   │   ├── models.py              
+│   │   └── schemas.py
 │   ├── architectures/       
 │   │   └── vision_model.py
 │   ├── dataloader/           
 │   │   └── image_dataset.py
-│   ├── inference/            # Inference pipeline
-│   │   └── hybrid_predict.py
 │   ├── engine/
-│   │   ├── eval_engine.py
 │   │   ├── evaluate_kfold.py
 │   │   ├── extract_oof_features.py
 │   │   └── train_kfold_v2.py
+│   ├── inference/            # Inference pipeline
+│   │   └── hybrid_predict.py
 │   ├── training/             # Training pipeline
 │   │   ├── train_meta.py
 │   │   └── trainer_core.py
@@ -176,6 +178,8 @@ AI_DET_PROJECT/
 │   └──  utils/
 │       ├── create_meta_dataset.py
 │       └── helpers.py
+├── test/
+│   └──.gitkeep
 ├── test_samples/
 ├── .dockerignore
 ├── Dockerfile

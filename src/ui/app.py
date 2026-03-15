@@ -44,7 +44,7 @@ with col_input:
     elif selected_sample != "None":
         image = Image.open(os.path.join(sample_folder, selected_sample)).convert("RGB")
         image_ready = True
-        st.image(image, caption=f"Sample: {selected_sample}", use_container_width=True)
+        st.image(image, caption=f"Sample: {selected_sample}", width='content')
 
 with col_meta:
     st.subheader("2.Clinical Metadata")
@@ -59,7 +59,7 @@ with col_meta:
     anatom_site = st.selectbox("Anatomical Site:", site_options)
     
     st.info("The Meta-Learner combines these clinical factors with visual patterns for a higher accuracy.")
-    analyze_btn = st.button("EXECUTE HYBRID ANALYSIS", type="primary", use_container_width=True)
+    analyze_btn = st.button("EXECUTE HYBRID ANALYSIS", type="primary", width='content')
 
 if analyze_btn and image_ready:
     with st.spinner("Deep Learning & XGBoost Fusion in progress"):

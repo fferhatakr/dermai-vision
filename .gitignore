@@ -2,8 +2,8 @@
 # DATA & MODEL FILES (GENERATED / LARGE FILES)
 
 # Raw & processed datasets
-Data/processed/
-Data/Raw/
+data/processed/
+data/raw/
 *.pt
 *.pth
 

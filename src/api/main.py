@@ -7,73 +7,24 @@ import torch.nn.functional as F
 from torchvision import transforms
 import numpy as np
 import pandas as pd
-import cv2
-import base64
-import os
-import sys
-import joblib
-import xgboost as xgb
-
-sys.path.append(os.getcwd())
-from src.training.trainer_core import DermatologLightning
+import src.api.models as ai_models
+from src.api.models import DEVICE, CLASSES
+from src.api.inference import apply_tta, apply_vignette
+from src.api.gradcam import generate_heatmap
+from src.api.schemas import AnalysisResponse
 
 
-CKPT_PATH = "models/kfold_models/ultimate_v5_fold_4.ckpt" 
-XGB_MODEL_PATH = "models/xgb_meta_learner.json"
-XGB_FEATURES_PATH = "models/xgb_features.pkl"
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CLASSES = ['0_mel', '1_nv', '2_bcc', '3_ak', '4_bkl', '5_df', '6_vasc', '7_scc']
 
 app = FastAPI(title="DermaScan AI - Full Debug Meta-Engine")
 
-lightning_model = None
-xgb_model = None
-feature_columns = None
 
 @app.on_event("startup")
-def load_ai_models():
-    global lightning_model, xgb_model, feature_columns
-    lightning_model = DermatologLightning.load_from_checkpoint(CKPT_PATH, strict=False)
-    lightning_model.to(DEVICE).eval()
-    
-    xgb_model = xgb.XGBClassifier()
-    xgb_model.load_model(XGB_MODEL_PATH)
-    feature_columns = joblib.load(XGB_FEATURES_PATH)
-    
+def startup():
+    ai_models.load_ai_models()
 
-def apply_tta(image):
-    base_transform = transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-    tta_transform = transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.RandomHorizontalFlip(p=1.0),
-        transforms.RandomRotation(degrees=15),
-        transforms.ColorJitter(brightness=0.1),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-    images = [base_transform(image)]
-    for _ in range(4): 
-        images.append(tta_transform(image))
-    return torch.stack(images).to(DEVICE)
 
-def apply_vignette(image_pil, sigma=180):
-    img_cv = np.array(image_pil)
-    img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
-    rows, cols = img_cv.shape[:2]
-    kernel_x = cv2.getGaussianKernel(cols, sigma)
-    kernel_y = cv2.getGaussianKernel(rows, sigma)
-    kernel = kernel_y * kernel_x.T
-    mask = 255 * kernel / np.linalg.norm(kernel)
-    mask = mask.astype(np.float32) / mask.max()
-    mask_3ch = np.dstack([mask] * 3)
-    vignette_img = (img_cv * mask_3ch).astype(np.uint8)
-    return Image.fromarray(cv2.cvtColor(vignette_img, cv2.COLOR_BGR2RGB))
 
-@app.post("/analyze")
+@app.post("/analyze",response_model=AnalysisResponse)
 async def analyze_image(
     file: UploadFile = File(...), 
     age: float = Form(...), 
@@ -89,7 +40,7 @@ async def analyze_image(
     
     input_batch = apply_tta(processed_image)
     with torch.no_grad():
-        logits = lightning_model(input_batch)
+        logits = ai_models.lightning_model(input_batch)
         cnn_probs = F.softmax(logits, dim=1).mean(dim=0).cpu().numpy()
 
     
@@ -99,11 +50,11 @@ async def analyze_image(
 
     df_meta = pd.DataFrame([meta_data])
     df_meta = pd.get_dummies(df_meta, columns=['sex', 'anatom_site_general'])
-    for col in feature_columns:
+    for col in ai_models.feature_columns:
         if col not in df_meta.columns: df_meta[col] = 0
-    df_meta = df_meta[feature_columns]
+    df_meta = df_meta[ai_models.feature_columns]
 
-    final_probs = xgb_model.predict_proba(df_meta)[0]
+    final_probs = ai_models.xgb_model.predict_proba(df_meta)[0]
     top_idx = np.argmax(final_probs)
     cnn_top_idx = np.argmax(cnn_probs)
 
@@ -132,24 +83,13 @@ async def analyze_image(
     else:
         is_risky = False
 
-    
     encoded_heatmap = ""
     if needs_heatmap:
-        try:
-            single_input = transforms.Compose([
-                transforms.Resize((300, 300)),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            ])(processed_image).unsqueeze(0).to(DEVICE)
-            hm = lightning_model.generate_gradcam(single_input)
-            if isinstance(hm, torch.Tensor): hm = hm.squeeze().detach().cpu().numpy()
-            hm = cv2.resize(hm, (original_image.size[0], original_image.size[1]))
-            hm_uint8 = np.uint8(255 * hm)
-            hm_color = cv2.applyColorMap(hm_uint8, cv2.COLORMAP_JET)
-            _, buf = cv2.imencode(".png", hm_color)
-            encoded_heatmap = base64.b64encode(buf).decode("utf-8")
-        except: pass
-
+        encoded_heatmap = generate_heatmap(
+            ai_models.lightning_model, 
+            processed_image, 
+            original_image
+        )
     
     top_idx = int(np.argmax(final_probs))       
     cnn_top_idx = int(np.argmax(cnn_probs))     
