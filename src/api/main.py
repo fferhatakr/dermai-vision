@@ -12,14 +12,18 @@ from src.api.models import DEVICE, CLASSES
 from src.api.inference import apply_tta, apply_vignette
 from src.api.gradcam import generate_heatmap
 from src.api.schemas import AnalysisResponse
+from src.api import db_models
+from src.api.database import create_tables
+from src.api.routes import users
 
 
 
 app = FastAPI(title="DermaScan AI - Full Debug Meta-Engine")
-
+app.include_router(users.router)
 
 @app.on_event("startup")
 def startup():
+    create_tables()
     ai_models.load_ai_models()
 
 
