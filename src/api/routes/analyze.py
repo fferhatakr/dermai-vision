@@ -12,6 +12,8 @@ import pandas as pd
 from PIL import Image
 import io
 import src.api.models as ai_models
+from src.api import db_models
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["analysis"])
 
@@ -24,9 +26,29 @@ async def analyze_image(
     anatom_site: str = Form(...),
     needs_heatmap: bool = Form(False),
     current_user: str = Depends(get_current_user),
+    full_name: str = Form(...),
+    db: Session = Depends(get_db)
+    ):
+    existing_patient = db.query(db_models.Patient).filter(
+        db_models.Patient.full_name == full_name
+    ).first()
     
-):
-    
+    if existing_patient:
+        patient = existing_patient
+    else:
+        patient = db_models.Patient(
+            full_name = full_name,
+            age=int(age),
+            sex=sex,
+            anatom_site=anatom_site
+        )
+        db.add(patient)
+        db.commit()
+        db.refresh(patient)
+
+
+
+
     image_bytes = await file.read()
     original_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     processed_image = apply_vignette(original_image)
@@ -95,6 +117,21 @@ async def analyze_image(
     hybrid_all_probs = {CLASSES[i].upper(): float(final_probs[i]) for i in range(len(CLASSES))}
     cnn_all_probs = {CLASSES[i].upper(): float(cnn_probs[i]) for i in range(len(CLASSES))}
 
+
+    #Find Doctor id
+    db_user = db.query(db_models.User).filter(
+        db_models.User.email == current_user
+    ).first()
+
+    new_analysis = db_models.Analysis(
+        patient_id = patient.id,
+        user_id = db_user.id,
+        diagnosis = CLASSES[top_idx].upper(),
+        confidence=float(final_probs[top_idx]),
+        is_risky=is_risky
+    )
+    db.add(new_analysis)
+    db.commit()
 
     return {
         "prediction": "Risky" if is_risky else "Benign",

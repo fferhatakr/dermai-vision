@@ -1,5 +1,5 @@
 
-# DermaScan AI - Multimodal Clinical Decision Support System (v5.1.0)
+# DermaScan AI - Multimodal Clinical Decision Support System (v6.0.0)
 
 ![Accuracy](https://img.shields.io/badge/General_Accuracy-~81%25-blue)
 ![Recall (Melanoma)](https://img.shields.io/badge/Recall_Melanoma-~82%25-green)
@@ -11,6 +11,8 @@
 ![Explainability](https://img.shields.io/badge/XAI-Grad--CAM-yellow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Auth](https://img.shields.io/badge/Auth-JWT-informational)
+![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql)
 
 ##  Disclaimer:
 **This project is an AI research and engineering demonstration.**
@@ -18,7 +20,9 @@
 
 **Ethical Disclaimer & Data Privacy Policy**
 This application is an engineering portfolio project and AI research demonstration. It is **NOT** intended for real medical diagnosis, treatment, or professional advice. Always consult a qualified dermatologist for medical concerns.
-**Zero Data Retention:** User privacy is our top priority. Uploaded images are processed strictly in-memory (RAM) during the inference pipeline and are **instantly destroyed** once the analysis is complete. No data, images, or personal information are stored, saved, or logged on any server.
+**Data Storage:** Analysis results, patient records, and doctor accounts are stored 
+securely in a PostgreSQL database. Images are processed strictly in-memory and are 
+never stored on any server.
 
 ---
 
@@ -155,6 +159,13 @@ AI_DET_PROJECT/
 │   └── export_to_onnx.py 
 ├── src/                      # Source code
 │   ├── api/    
+│   │   ├── routes/
+│   │   │   ├── analyze.py
+│   │   │   ├── patients.py
+│   │   │   └── users.py
+│   │   ├── auth.py
+│   │   ├── database.py
+│   │   ├── db_models.py
 │   │   ├── gradcam.py
 │   │   ├── inference.py
 │   │   ├── main.py
@@ -202,6 +213,8 @@ AI_DET_PROJECT/
 - **Inference Strategy:** Test-Time Augmentation (TTA) & Sensitivity-Driven Thresholding (MEL/BCC specific threshold values).
 - **Infrastructure:** Docker, Docker Hub (Containerization for zero-dependency deployment).
 - **CI/CD Readiness:** Standardized environment locking via requirements.txt and Docker layer caching.
+- **Authentication:** JWT tokens via `python-jose`, password hashing via `passlib` (bcrypt).
+- **Database:** PostgreSQL with SQLAlchemy ORM — users, patients, analyses tables.
 
 
 
@@ -251,7 +264,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-## Running the System (v5.1.0 - Classification Engine)
+## Running the System (v6.0.0)
 
 This project has a dual-stack architecture. You must run the FastAPI Backend and Streamlit Frontend units on separate terminals.
 
