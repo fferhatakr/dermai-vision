@@ -29,7 +29,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
 ### Git Flow & Branch Strategy
 - **Goal:** Adopt professional development practices and protect the main branch.
 - **Deliverable:** Establish `main / dev / feature/*` branch structure.
-- **Status:** In Progress
+- **Status:** Completed
 
 ### PostgreSQL + JWT Authentication
 - **Goal:** Transform the system into a persistent, multi-user product.
@@ -37,7 +37,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - Patient history and analysis results stored via PostgreSQL
   - Doctor / user management system with JWT Auth
   - User-specific dashboard
-- **Status:** Planned
+- **Status:** Completed
 - **Skills acquired:** SQL, authentication, backend security
 
 ### ONNX Inference Optimization
@@ -105,11 +105,11 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
 
 ```
 Phase I    [====================] 100% - Completed
-Phase II   [====                ]  20% - In Progress
+Phase II   [============        ]  60% - In Progress
 Phase III  [                    ]   0% - Planned
 Phase IV   [                    ]   0% - Future
 ```
 
 ---
 
-*Last updated: v5.1.0 — For detailed version history, see [CHANGELOG.md](CHANGELOG.md).*
+*Last updated: v6.0.0 — For detailed version history, see [CHANGELOG.md](CHANGELOG.md).*

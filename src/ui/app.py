@@ -112,6 +112,7 @@ with col_input:
 
 with col_meta:
     st.subheader("2. Patient & Clinical Data")
+    full_name = st.text_input("Patient Full Name",placeholder="e.g. John Smith")
     age = st.number_input("Patient Age:", min_value=0, max_value=120, value=30)
     sex = st.selectbox("Gender:", ["male", "female", "unknown"])
 
@@ -124,7 +125,7 @@ with col_meta:
     st.info("The Meta-Learner combines these clinical factors with visual patterns for higher accuracy.")
     analyze_btn = st.button("EXECUTE HYBRID ANALYSIS", type="primary")
 
-if analyze_btn and image_ready:
+if analyze_btn and image_ready and full_name:
     with st.spinner("Deep Learning & XGBoost Fusion in progress"):
         try:
             img_byte_arr = io.BytesIO()
@@ -136,6 +137,7 @@ if analyze_btn and image_ready:
                 "sex": sex,
                 "anatom_site": anatom_site,
                 "needs_heatmap": "true",
+                "full_name": full_name
             }
 
             response = requests.post(

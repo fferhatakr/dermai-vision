@@ -2,6 +2,23 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v6.0.0] - Full-Stack Clinical System
+
+### Major Additions
+- **PostgreSQL Database Integration:** Three core tables established: `users`, `patients`, `analyses`.
+- **JWT Authentication:** Doctor registration, login, and Bearer token protection on all sensitive endpoints.
+- **API Modular Refactor:** `main.py` split into `models.py`, `inference.py`, `gradcam.py`, `schemas.py`, and `routes/` directory.
+- **Patient Management:** `POST /patients/add`, `GET /patients/list`, `GET /patients/{id}/analyses` endpoints.
+- **Smart Patient Flow:** Analyze endpoint auto-creates or reuses patient records by name.
+- **Secure Analysis Endpoint:** `POST /analyze` requires JWT token. Results saved to database with doctor and patient relationship.
+- **Git Flow:** `main / dev / feature/*` branch structure established.
+
+### UI
+- Login and register tabs added to Streamlit.
+- Patient full name input added to analysis form.
+- Automatic session expiry handling.
+
+
 ## [v5.1.0] - Containerization & Production Readiness
 ### Added
 - **Dockerized Backend (FastAPI):** Created a multi-stage `python:3.10-slim` Dockerfile to encapsulate the inference engine, including PyTorch and XGBoost dependencies.
