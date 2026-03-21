@@ -13,11 +13,22 @@ train_transforms = transforms.Compose([
     transforms.Resize((300, 300)),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5), 
-    transforms.RandomRotation(degrees=30),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.1),
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-    transforms.ToTensor(), # Zorunlu: Erasing'den önce
-    transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3), value=0),
+    transforms.RandomRotation(degrees=90),
+    transforms.ColorJitter(
+        brightness=0.3, 
+        contrast=0.3, 
+        saturation=0.2,
+        hue=0.05),
+    transforms.RandomAffine(
+        degrees=0, 
+        translate=(0.1, 0.1),
+        scale=(0.85, 1.15),
+        shear=10),
+    transforms.RandomPerspective(distortion_scale=0.15, p=0.3),  
+    transforms.RandomGrayscale(p=0.05),  
+    transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.0)),  
+    transforms.ToTensor(),
+    transforms.RandomErasing(p=0.5, scale=(0.02, 0.15), ratio=(0.3, 3.3), value=0),
     transforms.Normalize(mean=mean, std=std)
 ])
 
