@@ -1,6 +1,35 @@
 # Changelog
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+## [v7.0.0] - Honest Evaluation & Threshold Optimization
+
+### Bug Fixes
+- **Metric contamination fixed:** Separated train/val torchmetrics instances — val_acc was inflated by train state leaking into validation.
+- **Index mapping fixed:** ImageFolder indices now correctly mapped to metadata CSV after filtering missing files.
+- **YOLO global scope fix:** `yolo_model` added to global declaration in `load_ai_models()`.
+
+### Evaluation Infrastructure
+- **StratifiedGroupKFold:** Replaced StratifiedKFold with lesion-based grouping to prevent data leakage.
+- **Threshold optimization:** MEL threshold tuned to 0.11 for ≥80% recall (was hardcoded 0.45).
+- **TTA evaluation:** 5-view Test-Time Augmentation added to evaluation (horizontal/vertical flip, 90°/270° rotation).
+- **Unified evaluation script:** `evaluate_full.py` replaces `evaluate_kfold.py` and `evaluate_with_threshold.py`.
+
+### Training
+- **Backbone selection:** `trainer_core.py` now accepts `backbone` parameter ("efficientnet_b3" or "convnext_tiny").
+- **Cosine annealing:** Added as scheduler option alongside ReduceLROnPlateau.
+- **ConvNeXt-Tiny:** `DermaScanModelV4` added to `vision_models.py`.
+- **Configurable training:** `train_kfold_v3.py` with BACKBONE, LR, EXPERIMENT_NAME variables.
+
+### Production
+- **MEL safety threshold:** `analyze.py` updated from `prob_mel > 0.45` to `prob_mel > 0.11`.
+- **Model checkpoint:** Updated to v7 TTA-validated model.
+
+### Metrics (Honest, Fold 1)
+| Metric | Standard | TTA + Threshold |
+|--------|----------|-----------------|
+| Accuracy | 62.6% | 67% |
+| MEL Recall | 44.9% | 80.4% |
+| MEL F1 | 0.46 | 0.72 |
 
 ## [v6.0.0] - Full-Stack Clinical System
 
