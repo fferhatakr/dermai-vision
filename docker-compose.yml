@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: derma_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ferhat_sifre_123
+      POSTGRES_DB: dermascan
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

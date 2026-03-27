@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form
 from src.api.schemas import AnalysisResponse
 from src.api.auth import get_current_user
 from src.api.models import CLASSES
-from src.api.inference import apply_tta, apply_vignette
+from src.api.inference import run_hybrid_inference, apply_vignette
 from src.api.gradcam import generate_heatmap
 from src.api.database import get_db
 import torch
@@ -82,39 +82,37 @@ async def analyze_image(
 
     processed_image = apply_vignette(cropped_image)
 
-    input_batch = apply_tta(processed_image)
-    with torch.no_grad():
-        logits = ai_models.lightning_model(input_batch)
-        cnn_probs = F.softmax(logits, dim=1).mean(dim=0).cpu().numpy()
+    # Tek satırda CNN + Metadata + XGBoost orkestrasını çalıştır
+    inference_result = run_hybrid_inference(
+        processed_image, 
+        age, 
+        sex, 
+        anatom_site, 
+        ai_models.lightning_model
+    )
 
-    meta_data = {'age_approx': age, 'sex': sex, 'anatom_site_general': anatom_site}
-    for i, class_name in enumerate(CLASSES):
-        meta_data[class_name] = cnn_probs[i]
-
-    df_meta = pd.DataFrame([meta_data])
-    df_meta = pd.get_dummies(df_meta, columns=['sex', 'anatom_site_general'])
-    for col in ai_models.feature_columns:
-        if col not in df_meta.columns:
-            df_meta[col] = 0
-    df_meta = df_meta[ai_models.feature_columns]
-
-    final_probs = ai_models.xgb_model.predict_proba(df_meta)[0]
+    # Sonuçları yeni sistemden ayıkla
+    final_probs = list(inference_result["all_probabilities"].values())
+    cnn_probs = list(inference_result["cnn_contribution"].values())
+    
     top_idx = int(np.argmax(final_probs))
     cnn_top_idx = int(np.argmax(cnn_probs))
     cnn_max_conf = float(cnn_probs[cnn_top_idx])
-
-    malignant_indices = [0, 2, 3, 7]
-    prob_mel = final_probs[0]
+    prob_mel = float(inference_result["all_probabilities"]["MEL"])
 
     final_diagnosis = CLASSES[top_idx].upper()
 
+    # Mevcut risk mantığını yeni verilerle güncelle
+    malignant_indices = [0, 2, 3, 7] # MEL, BCC, AK, SCC
+    
     if top_idx in malignant_indices:
         is_risky = True
     elif cnn_top_idx in malignant_indices and cnn_max_conf > 0.40:
-        is_risky = True
+        is_risky = True # Resim çok bağırıyorsa XGBoost'u bypass et
         final_diagnosis = f"{CLASSES[cnn_top_idx].upper()} (VISUAL ALERT)"
-    elif prob_mel > 0.11:
+    elif prob_mel > 0.11: # Roadmap'teki kritik eşik değeri
         is_risky = True
+        final_diagnosis = "MELANOMA RISK (LOW THRESHOLD)"
     else:
         is_risky = False
 

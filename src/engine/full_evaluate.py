@@ -17,15 +17,30 @@ from src.training.trainer_core import DermatologLightning
 from src.dataloader.image_dataset import val_transforms
 
 
-CSV_PATH = "data/processed/oof_meta_dataset.csv"
-DATA_PATH = "data/processed/just_leke"
-MODEL_PATH = "models/kfold_models/ultimate_v6_cropped_fold_1.ckpt"  
+CSV_PATH = "data/processed/full_metadata.csv"
+DATA_PATH = "data/processed/just_stain"
+MODEL_PATH = "models/kfold_models/best_modelv2.ckpt"  
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MEL_CLASS_IDX = 0
 USE_TTA = True  
 
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
+"""
+This script:
+
+1. Loads the model
+2. Creates a validation set
+3. Generates predictions using TTA
+4. Optimizes the threshold for melanoma
+5. Analyzes performance
+6. Visualizes the results
+
+TTA= Test time augmentation
+If we want to present the same image to the model in a different way—to tell a story—
+we can think of it as if five doctors were making a joint decision
+"""
+
 tta_transforms = [
     val_transforms, 
     transforms.Compose([
@@ -184,10 +199,10 @@ def main():
 
         
         if USE_TTA:
-            print(f"\nEvulation with TTA ({len(tta_transforms)})...")
+            print(f"\nEvaluation with TTA ({len(tta_transforms)})...")
             all_probs, all_true = evaluate_with_tta(model, real_val_indices, DATA_PATH, DEVICE)
         else:
-            print("\nStandard Evulation")
+            print("\nStandard Evaluation")
             all_probs, all_true = evaluate_standard(model, real_val_indices, DATA_PATH, DEVICE)
 
         preds_standard = np.argmax(all_probs, axis=1)

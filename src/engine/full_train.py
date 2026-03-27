@@ -14,13 +14,20 @@ sys.path.append(os.getcwd())
 
 from src.training.trainer_core import DermatologLightning
 from src.dataloader.image_dataset import train_transforms, val_transforms
+"""
+This script:
 
-
+1. Cleans the data
+2. Addresses class imbalance
+3. Checks for data leakage
+4. Applies weighted sampling
+5. Trains the model using a custom loss function
+6. Trains the model using Lightning
+"""
 class UltimateDermatolog(DermatologLightning):
     def compute_loss(self, logits, labels):
         ce_loss = F.cross_entropy(
             logits, labels,
-            weight=self.class_weights,
             label_smoothing=0.1,
             reduction='none'
         )
@@ -28,16 +35,15 @@ class UltimateDermatolog(DermatologLightning):
         focal_loss = ((1 - pt) ** 2.0) * ce_loss
         return focal_loss.mean()
 
-
 def main():
-    CSV_PATH = "data/processed/oof_meta_dataset.csv"
-    DATA_PATH = "data/processed/just_leke"
+    CSV_PATH = "data/processed/full_metadata.csv"
+    DATA_PATH = "data/processed/full_dataset"
     BATCH_SIZE = 16
     EPOCHS = 25
     K_FOLDS = 5
     BACKBONE = "efficientnet_b3"  
     LR = 1e-4
-    EXPERIMENT_NAME = f"v7_{BACKBONE}"
+    EXPERIMENT_NAME = f"bestmodelfullfoto_{BACKBONE}"
 
     print("Reading Metadata")
     df = pd.read_csv(CSV_PATH)
@@ -45,7 +51,15 @@ def main():
     df['lesion_id'] = df['lesion_id'].fillna(df['image'])
     df.set_index('image', inplace=True)
 
+    df_nv = df[df['targets'] == 1]
+    df_others = df[df['targets'] != 1]
     
+    if len(df_nv) > 3000:
+        df_nv = df_nv.sample(n=3000, random_state=42)
+        
+    
+    df = pd.concat([df_nv, df_others])
+
     full_dataset = datasets.ImageFolder(DATA_PATH)
 
     clean_file_names = []
@@ -83,7 +97,6 @@ def main():
         if fold > 0:
             break
 
-        
         train_g = set(valid_groups[train_idx])
         val_g = set(valid_groups[val_idx])
         overlap = train_g.intersection(val_g)
@@ -92,14 +105,12 @@ def main():
         if len(overlap) == 0:
             print("LEAK TEST SUCCESSFUL")
         else:
-            print(f"Please note: {len(overlap)}There’s a leak")
+            print(f"Please note: {len(overlap)}There's a leak")
         print("-" * 40)
 
-        
         real_train_indices = valid_imgfolder_indices[train_idx]
         real_val_indices = valid_imgfolder_indices[val_idx]
 
-        
         dataset_train = datasets.ImageFolder(DATA_PATH, transform=train_transforms)
         dataset_val = datasets.ImageFolder(DATA_PATH, transform=val_transforms)
 
@@ -113,7 +124,6 @@ def main():
         print(f"Train distribution:: {dict(zip(*np.unique(curr_train_targets, return_counts=True)))}")
         print(f"Val distribution:   {dict(zip(*np.unique(curr_val_targets, return_counts=True)))}")
 
-        
         sample_checks = min(20, len(real_train_indices))
         mismatch_count = 0
         for i in range(sample_checks):
@@ -127,24 +137,16 @@ def main():
         else:
             print(f"Label verification OK")
 
-        
         counts = np.bincount(curr_train_targets)
-        ws = 1. / counts
+        ws = 1. / np.sqrt(counts)
+        
         sample_weights = ws[curr_train_targets]
         sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
-        train_loader = DataLoader(train_sub, batch_size=BATCH_SIZE, sampler=sampler, num_workers=0, pin_memory=True)
-        val_loader = DataLoader(val_sub, batch_size=BATCH_SIZE, shuffle=False, num_workers=0, pin_memory=True)
+        train_loader = DataLoader(train_sub, batch_size=BATCH_SIZE, sampler=sampler, num_workers=4, pin_memory=True)
+        val_loader = DataLoader(val_sub, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True)
 
-        
-        unique_c, c_counts = np.unique(curr_train_targets, return_counts=True)
-        weights_array = np.ones(8, dtype=np.float32)
-        for i, cls in enumerate(unique_c):
-            weights_array[cls] = len(curr_train_targets) / (8 * c_counts[i])
-
-        class_weights = torch.tensor(weights_array)
         model = UltimateDermatolog(
-            class_weights=class_weights,
             backbone=BACKBONE,
             lr=LR,
             max_epochs=EPOCHS
@@ -171,7 +173,6 @@ def main():
         print(f"FOLD {fold+1} — Starting training with {BACKBONE}")
         trainer.fit(model, train_loader, val_loader)
         print(f"FOLD {fold+1} Completed!")
-
 
 if __name__ == "__main__":
     main()
