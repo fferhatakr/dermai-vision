@@ -1,6 +1,26 @@
 # Changelog
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+## [v7.1.0] - Dockerization, CI/CD Setup & Architecture Refactoring
+
+### Added
+- **Docker Integration:** Introduced `docker-compose.yml` for seamless multi-container deployment (FastAPI + PostgreSQL).
+- **Automated Testing:** Added a comprehensive Pytest suite (`test_api.py`, `test_data.py`, `test_model.py`) for API and DB validation.
+- **Configuration Management:** Centralized settings with the new `configs/` directory structure.
+- **Meta-Learner Scripts:** Introduced `extract_features.py` and `train_meta_learner.py` for advanced ensemble strategies.
+
+### Changed
+- **API & Backend:** Refactored `database.py`, `models.py`, and `inference.py` to flawlessly communicate within the Docker network.
+- **CI/CD Pipeline:** Updated `.github/workflows/python-app.yml` to support automated testing with a service database.
+- **Training Engine:** Streamlined `full_train.py` and `full_evaluate.py` for the new data structures.
+- **Documentation:** Updated `README.md` and `ROADMAP.md` to reflect Phase II progress.
+
+### Removed (Clean-up)
+- **Legacy Scripts:** Deleted obsolete files (`bulk_crop.py`, `create_meta_dataset.py`, `export_to_onnx.py`) to reduce technical debt.
+- **Old Inference Modules:** Removed redundant hybrid prediction scripts (`inference/__init__.py`, `hybrid_predict.py`) in favor of the unified API structure.
+
+
+
 ## [v7.0.0] - Honest Evaluation & Threshold Optimization
 
 ### Bug Fixes

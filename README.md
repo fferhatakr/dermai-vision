@@ -2,6 +2,7 @@
 
 ![Accuracy](https://img.shields.io/badge/Accuracy-67%25_(threshold)-blue)
 ![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-80%25_(threshold)-green)
+![CI Status](https://github.com/KULLANICI_ADIN/REPO_ADIN/actions/workflows/python-tests.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
 ![Meta-Learner](https://img.shields.io/badge/Meta_Learner-XGBoost-darkred)
@@ -112,7 +113,9 @@ AI_DET_PROJECT/
 │   ├── processed/
 │   └── raw/
 ├── scripts/
-│   └── export_to_onnx.py
+│   └── setup/
+│   │   ├── organize_isic.py
+│   │   └── prepare_initial_data.py
 ├── src/
 │   ├── api/
 │   │   ├── routes/
@@ -132,19 +135,16 @@ AI_DET_PROJECT/
 │   ├── dataloader/
 │   │   └── image_dataset.py        # Transforms and data loading
 │   ├── engine/
-│   │   ├── extract_oof_features.py 
+│   │   ├── extract_features.py 
 │   │   ├── full_evaluate.py        # TTA + threshold evaluation
+│   │   ├── train_meta_learner.py
 │   │   └── full_train.py           # Training with backbone selection
-│   ├── inference/
-│   │   └──hybrid_predict.py
 │   ├── training/
 │   │   ├── train_meta.py           # XGBoost meta-learner training
 │   │   └── trainer_core.py         # PyTorch Lightning module
 │   ├── ui/
 │   │   └── app.py                  # Streamlit dashboard
 │   └── utils/
-│       ├── bulk_crop.py            # YOLO batch cropping
-│       ├── create_meta_dataset.py
 │       └── helpers.py
 ├── test/
 ├── .env
@@ -161,9 +161,9 @@ AI_DET_PROJECT/
 ## Installation
 
 ### Docker (recommended)
-
+The entire system (API + UI + Database) can be launched with a single command:
 ```bash
-docker-compose up -d
+docker-compose up -build
 ```
 
 ### Manual setup
@@ -207,6 +207,12 @@ python src/engine/full_evaluate.py
 ```
 
 ---
+
+### Testing on Local Network (Mobile Access)
+Since DermaScan AI processes skin lesions, testing via smartphone camera is highly recommended.
+1. Run the application bound to `0.0.0.0` (e.g., `uvicorn src.api.main:app --host 0.0.0.0`).
+2. Ensure your firewall allows inbound connections on ports `8000` (API) and `8501` (UI).
+3. Access the dashboard from your phone's browser using your computer's local IP: `http://192.168.1.X:8501`.
 
 ## Acknowledgements
 
