@@ -42,7 +42,7 @@ class DermatologLightning(pl.LightningModule):
         self._register_hooks(backbone)
 
     def _register_hooks(self, backbone):
-        """Add the hook to the correct layer according rto the backbone"""
+    
         try:
             if backbone == "efficientnet_b3":
                 self.model.backbone.features[-2].register_forward_hook(self.save_activations)

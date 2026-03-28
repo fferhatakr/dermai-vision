@@ -8,13 +8,13 @@ from PIL import Image
 from torchvision import transforms
 from src.api.models import DEVICE
 
-# Modelleri ve Encoder'ları Yükle (Path'leri temizlik sonrası yerlerine göre güncelledim)
+
 XGB_MODEL_PATH = "models/meta/xgb_meta_learner.json"
 XGB_FEATURES_PATH = "models/meta/xgb_features.pkl"
 LE_SEX_PATH = "models/meta/le_sex.pkl"
 LE_SITE_PATH = "models/meta/le_site.pkl"
 
-# Global olarak yükleyelim ki her istekte disk okunmasın
+
 meta_learner = xgb.XGBClassifier()
 meta_learner.load_model(XGB_MODEL_PATH)
 feature_names = joblib.load(XGB_FEATURES_PATH)
@@ -22,24 +22,16 @@ le_sex = joblib.load(LE_SEX_PATH)
 le_site = joblib.load(LE_SITE_PATH)
 
 def run_hybrid_inference(image_pil, age, sex, site, vision_model):
-    """
-    CNN (EfficientNet) + Metadata (XGBoost) hibrit tahmin mekanizması.
-    """
+
     vision_model.eval()
     
-    # 1. Image Preprocessing & TTA
-    # Opsiyonel: Vignette eklemek istersen burada çağırabilirsin
-    # image_pil = apply_vignette(image_pil) 
-    tta_batch = apply_tta(image_pil) # [5, 3, 300, 300] tensor döner
-    
-    # 2. Vision (CNN) Olasılıklarını Çıkar
+
+    tta_batch = apply_tta(image_pil) 
     with torch.no_grad():
         logits = vision_model(tta_batch)
         probs = F.softmax(logits, dim=1).cpu().numpy()
-        # 5 TTA görüntüsünün ortalamasını alarak daha stabil bir sonuç elde edelim
-        avg_cnn_probs = np.mean(probs, axis=0) # [8] boyutunda vektör
-    
-    # 3. Klinik Verileri Encode Et (XGBoost'un anladığı dile çevir)
+        avg_cnn_probs = np.mean(probs, axis=0)
+
     try:
         sex_encoded = le_sex.transform([str(sex).lower()])[0]
     except:
@@ -49,13 +41,10 @@ def run_hybrid_inference(image_pil, age, sex, site, vision_model):
         site_encoded = le_site.transform([str(site).lower()])[0]
     except:
         site_encoded = le_site.transform(['unknown'])[0]
-
-    # 4. 11 Boyutlu Feature Vector Hazırla
-    # Sıralama: [0_mel, 1_nv, ..., 7_scc, age_approx, sex_encoded, site_encoded]
     clinical_data = np.array([age, sex_encoded, site_encoded])
     final_feature_vector = np.concatenate([avg_cnn_probs, clinical_data]).reshape(1, -1)
     
-    # 5. Meta-Learner (XGBoost) Nihai Karar
+
     final_probs = meta_learner.predict_proba(final_feature_vector)[0]
     final_class = np.argmax(final_probs)
     
@@ -65,12 +54,11 @@ def run_hybrid_inference(image_pil, age, sex, site, vision_model):
         "prediction": class_names[final_class],
         "confidence": float(final_probs[final_class]),
         "all_probabilities": dict(zip(class_names, final_probs.tolist())),
-        "cnn_contribution": dict(zip(class_names, avg_cnn_probs.tolist())) # CNN ne demişti?
+        "cnn_contribution": dict(zip(class_names, avg_cnn_probs.tolist())) 
     }
 
-# Mevcut fonksiyonlarını koru (TTA ve Vignette)
+
 def apply_tta(image):
-    # ... (Gonderdiğin kodun aynısı buraya gelecek) ...
     base_transform = transforms.Compose([
         transforms.Resize((300, 300)),
         transforms.ToTensor(),
@@ -90,7 +78,6 @@ def apply_tta(image):
     return torch.stack(images).to(DEVICE)
 
 def apply_vignette(image_pil, sigma=180):
-    # ... (Gonderdiğin kodun aynısı buraya gelecek) ...
     img_cv = np.array(image_pil)
     img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
     rows, cols = img_cv.shape[:2]
