@@ -26,20 +26,7 @@ USE_TTA = True
 
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
-"""
-This script:
 
-1. Loads the model
-2. Creates a validation set
-3. Generates predictions using TTA
-4. Optimizes the threshold for melanoma
-5. Analyzes performance
-6. Visualizes the results
-
-TTA= Test time augmentation
-If we want to present the same image to the model in a different way—to tell a story—
-we can think of it as if five doctors were making a joint decision
-"""
 
 tta_transforms = [
     val_transforms, 
@@ -199,7 +186,7 @@ def main():
 
         
         if USE_TTA:
-            print(f"\nEvaluation with TTA ({len(tta_transforms)})...")
+            print(f"\nEvaluation with TTA ({len(tta_transforms)}).")
             all_probs, all_true = evaluate_with_tta(model, real_val_indices, DATA_PATH, DEVICE)
         else:
             print("\nStandard Evaluation")

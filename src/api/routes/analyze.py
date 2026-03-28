@@ -60,7 +60,7 @@ async def analyze_image(
         int(img_w * (1 - margin)), int(img_h * (1 - margin))
     ))
 
-    # YOLO ile lezyon ara
+    
     results = ai_models.yolo_model.predict(cv_image, conf=0.25, verbose=False)
     cropped_image = center_crop  
 
@@ -82,7 +82,7 @@ async def analyze_image(
 
     processed_image = apply_vignette(cropped_image)
 
-    # Tek satırda CNN + Metadata + XGBoost orkestrasını çalıştır
+    
     inference_result = run_hybrid_inference(
         processed_image, 
         age, 
@@ -91,7 +91,7 @@ async def analyze_image(
         ai_models.lightning_model
     )
 
-    # Sonuçları yeni sistemden ayıkla
+    
     final_probs = list(inference_result["all_probabilities"].values())
     cnn_probs = list(inference_result["cnn_contribution"].values())
     
@@ -102,15 +102,15 @@ async def analyze_image(
 
     final_diagnosis = CLASSES[top_idx].upper()
 
-    # Mevcut risk mantığını yeni verilerle güncelle
-    malignant_indices = [0, 2, 3, 7] # MEL, BCC, AK, SCC
+    
+    malignant_indices = [0, 2, 3, 7]
     
     if top_idx in malignant_indices:
         is_risky = True
     elif cnn_top_idx in malignant_indices and cnn_max_conf > 0.40:
-        is_risky = True # Resim çok bağırıyorsa XGBoost'u bypass et
+        is_risky = True 
         final_diagnosis = f"{CLASSES[cnn_top_idx].upper()} (VISUAL ALERT)"
-    elif prob_mel > 0.11: # Roadmap'teki kritik eşik değeri
+    elif prob_mel > 0.11: 
         is_risky = True
         final_diagnosis = "MELANOMA RISK (LOW THRESHOLD)"
     else:

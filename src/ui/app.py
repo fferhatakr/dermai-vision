@@ -13,7 +13,6 @@ st.set_page_config(page_title="DermaScan AI", page_icon="", layout="wide")
 
 st.markdown("""
     <style>
-    /* ===================== BASE / DESKTOP ===================== */
     .main { background-color: #0e1117; }
 
     img { border-radius: 8px; border: 1px solid #30363d; }
@@ -22,36 +21,34 @@ st.markdown("""
         background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
     }
 
-    /* Wider tap targets for all buttons */
     .stButton > button {
         min-height: 48px;
         font-size: 1rem;
     }
 
-    /* ===================== MOBILE ===================== */
+    
     @media (max-width: 768px) {
 
-        /* Remove excessive side padding Streamlit adds */
         .block-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
             padding-top: 1rem !important;
         }
 
-        /* Stack Streamlit columns vertically */
+        
         [data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
             flex: 1 1 100% !important;
         }
 
-        /* Make images fill width */
+  
         [data-testid="stImage"] img {
             width: 100% !important;
             height: auto !important;
         }
 
-        /* Larger readable title */
+
         h1 {
             font-size: 1.5rem !important;
             line-height: 1.3 !important;
@@ -65,44 +62,42 @@ st.markdown("""
             font-size: 1.05rem !important;
         }
 
-        /* Full-width execute button */
+    
         .stButton > button {
             width: 100% !important;
             min-height: 52px !important;
             font-size: 1rem !important;
         }
 
-        /* Inputs larger for touch */
+
         input, textarea, select {
             font-size: 1rem !important;
         }
 
-        /* File uploader: larger drop zone */
+
         [data-testid="stFileUploaderDropzone"] {
             min-height: 80px !important;
             padding: 1rem !important;
         }
 
-        /* Alerts / info boxes: readable on narrow screen */
         [data-testid="stAlert"] {
             font-size: 0.88rem !important;
         }
 
-        /* Progress bars slightly taller for visibility */
+
         .stProgress > div {
             height: 10px !important;
         }
 
-        /* Divider spacing */
+
         hr { margin: 0.75rem 0 !important; }
 
-        /* Debug columns: stack side by side info blocks */
         [data-testid="stHorizontalBlock"] > [data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
         }
 
-        /* Metric / caption text */
+
         p, label, .stMarkdown p {
             font-size: 0.92rem !important;
         }
@@ -115,13 +110,13 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ── Session state ──────────────────────────────────────────────
+
 if "token" not in st.session_state:
     st.session_state.token = None
 if "user_email" not in st.session_state:
     st.session_state.user_email = None
 
-# ── Auth gate ──────────────────────────────────────────────────
+
 if st.session_state.token is None:
     st.title("DermaScan AI")
     st.markdown("---")
@@ -170,7 +165,6 @@ if st.session_state.token is None:
 
     st.stop()
 
-# ── Header ─────────────────────────────────────────────────────
 col_title, col_user = st.columns([4, 1])
 with col_title:
     st.title("DermaScan AI: Meta-Learning Fusion System")
@@ -186,7 +180,7 @@ st.info("**Privacy Policy:** Uploaded images are processed strictly in-memory an
 st.markdown("Combined analysis of Deep Learning (CNN) and Clinical Metadata (XGBoost)")
 st.markdown("---")
 
-# ── Input section ──────────────────────────────────────────────
+
 col_input, col_meta = st.columns([1, 1])
 
 image = None
@@ -225,7 +219,7 @@ with col_meta:
     st.info("The Meta-Learner combines these clinical factors with visual patterns for higher accuracy.")
     analyze_btn = st.button("EXECUTE HYBRID ANALYSIS", type="primary")
 
-# ── Analysis ───────────────────────────────────────────────────
+
 if analyze_btn and image_ready and full_name:
     with st.spinner("Deep Learning & XGBoost Fusion in progress"):
         try:

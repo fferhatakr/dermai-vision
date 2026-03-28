@@ -120,7 +120,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - Accuracy, loss, hyperparameters tracked per run
   - Model artifact versioning
   - Experiment comparison dashboard
-- **Status:** Planned
+- **Status:** Completed
 
 ### Model Monitoring & Drift Detection
 - **Goal:** Detect when model performance degrades in production.
