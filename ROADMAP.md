@@ -141,7 +141,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - Evidently AI integration for data drift detection
   - API latency and confidence score monitoring
   - Automated alerts when distribution shifts
-- **Status:** Planned
+- **Status:** Deferred
 
 ### Feedback Loop & Active Learning
 - **Goal:** Build a model improvement cycle from real-world usage.
@@ -150,7 +150,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - Feedback storage in PostgreSQL
   - Data validation pipeline (filter noisy/invalid submissions)
   - Periodic retraining trigger (manual or scheduled)
-- **Status:** Planned
+- **Status:** Deferred
 
 ### CI/CD Pipeline (Production-Grade)
 - **Goal:** Automate testing, validation, and deployment.
@@ -158,7 +158,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - GitHub Actions: lint + pytest + model validation on PR
   - Automated Docker image build and push
   - Model performance regression check before merge
-- **Status:** Planned
+- **Status:** Completed
 
 ### Test Coverage Expansion
 - **Goal:** Reach ≥80% test coverage on critical paths.
@@ -166,7 +166,7 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
   - API endpoint tests (auth, analyze, patients)
   - Model inference tests (shape, dtype, output range)
   - Data pipeline tests (transforms, CSV parsing, index mapping)
-- **Status:** Planned
+- **Status:** Completed
 
 ---
 
