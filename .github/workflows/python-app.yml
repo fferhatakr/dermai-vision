@@ -31,12 +31,40 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest opencv-python-headless pytest-mock
+        pip install pytest pytest-mock
+
+    - name: Create Dummy Medical Data Structure
+      run: |
+        mkdir -p data/processed/full_dataset/0_mel
+        touch data/processed/full_dataset/0_mel/dummy.jpg
+        mkdir -p data/processed/full_dataset/1_nv
+        touch data/processed/full_dataset/1_nv/dummy.jpg
+        mkdir -p data/processed/full_dataset/2_bcc
+        touch data/processed/full_dataset/2_bcc/dummy.jpg
+        mkdir -p data/processed/full_dataset/3_ak
+        touch data/processed/full_dataset/3_ak/dummy.jpg
+        mkdir -p data/processed/full_dataset/4_bkl
+        touch data/processed/full_dataset/4_bkl/dummy.jpg
+        mkdir -p data/processed/full_dataset/5_df
+        touch data/processed/full_dataset/5_df/dummy.jpg
+        mkdir -p data/processed/full_dataset/6_vasc
+        touch data/processed/full_dataset/6_vasc/dummy.jpg
+        mkdir -p data/processed/full_dataset/7_scc
+        touch data/processed/full_dataset/7_scc/dummy.jpg
+        mkdir -p data/processed
+        echo "image,targets,lesion_id,age_approx,sex,anatom_site_general" > data/processed/full_metadata.csv
+        echo "test1,0,LES_001,55.0,female,anterior torso" >> data/processed/full_metadata.csv
+        echo "test2,1,LES_002,30.0,male,upper extremity" >> data/processed/full_metadata.csv
+        echo "test3,2,LES_003,45.0,female,posterior torso" >> data/processed/full_metadata.csv
+        echo "test4,3,LES_004,60.0,male,lower extremity" >> data/processed/full_metadata.csv
+        echo "test5,4,LES_005,25.0,female,head/neck" >> data/processed/full_metadata.csv
+        echo "test6,5,LES_006,50.0,male,palms/soles" >> data/processed/full_metadata.csv
+        echo "test7,6,LES_007,35.0,female,anterior torso" >> data/processed/full_metadata.csv
+        echo "test8,7,LES_008,40.0,male,upper extremity" >> data/processed/full_metadata.csv
 
     - name: Create Dummy Medical Data Structure
       run: |
@@ -52,4 +80,6 @@ jobs:
         DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@localhost:5432/dermascan
         JWT_SECRET: ci_test_secret
       run: |
-        pytest test_api.py test_data.py test_model.py
+        pytest test/test_data.py
+        pytest test/test_model.py
+        pytest test/test_api.py

@@ -9,31 +9,14 @@ from torchvision import datasets
 import sys
 import os
 import torch.nn.functional as F
+import mlflow
+from pytorch_lightning.loggers import MLflowLogger
+
 
 sys.path.append(os.getcwd())
 
 from src.training.trainer_core import DermatologLightning
 from src.dataloader.image_dataset import train_transforms, val_transforms
-"""
-This script:
-
-1. Cleans the data
-2. Addresses class imbalance
-3. Checks for data leakage
-4. Applies weighted sampling
-5. Trains the model using a custom loss function
-6. Trains the model using Lightning
-"""
-class UltimateDermatolog(DermatologLightning):
-    def compute_loss(self, logits, labels):
-        ce_loss = F.cross_entropy(
-            logits, labels,
-            label_smoothing=0.1,
-            reduction='none'
-        )
-        pt = torch.exp(-ce_loss)
-        focal_loss = ((1 - pt) ** 2.0) * ce_loss
-        return focal_loss.mean()
 
 def main():
     CSV_PATH = "data/processed/full_metadata.csv"
@@ -93,6 +76,8 @@ def main():
 
     sgkf = StratifiedGroupKFold(n_splits=K_FOLDS, shuffle=True, random_state=42)
 
+    mlflow.set_experiment(f"DermaScan_{BACKBONE}")
+
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(np.zeros(len(valid_targets)), valid_targets, groups=valid_groups)):
         if fold > 0:
             break
@@ -146,7 +131,7 @@ def main():
         train_loader = DataLoader(train_sub, batch_size=BATCH_SIZE, sampler=sampler, num_workers=4, pin_memory=True)
         val_loader = DataLoader(val_sub, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True)
 
-        model = UltimateDermatolog(
+        model = DermatologLightning(
             backbone=BACKBONE,
             lr=LR,
             max_epochs=EPOCHS
@@ -160,19 +145,37 @@ def main():
         early_stop = EarlyStopping(monitor="val_loss", patience=7, mode="min")
         lr_monitor = LearningRateMonitor(logging_interval='epoch')
 
-        trainer = pl.Trainer(
-            max_epochs=EPOCHS,
-            accelerator="cuda",
-            devices=1,
-            callbacks=[checkpoint_callback, early_stop, lr_monitor],
-            precision="16-mixed",
-            accumulate_grad_batches=4,
-            log_every_n_steps=10
-        )
+        with mlflow.start_run(run_name=f"fold_{fold+1}"):
+            mlflow.log_params({
+                "backbone": BACKBONE,
+                "batch_size": BATCH_SIZE,
+                "epochs": EPOCHS,
+                "lr": LR,
+                "fold": fold + 1,
+                "train_size": len(train_idx),
+                "val_size": len(val_idx),
+                "accumulate_grad_batches": 4,
+            })
 
-        print(f"FOLD {fold+1} — Starting training with {BACKBONE}")
-        trainer.fit(model, train_loader, val_loader)
-        print(f"FOLD {fold+1} Completed!")
+            mlflow_logger = MLflowLogger(
+                experiment_name =f"DermaScan_{BACKBONE}",
+                run_id=mlflow.active_run().info.run_id
+            )
+            trainer = pl.Trainer(
+                max_epochs=EPOCHS,
+                accelerator="cuda",
+                devices=1,
+                callbacks=[checkpoint_callback, early_stop, lr_monitor],
+                precision="16-mixed",
+                accumulate_grad_batches=4,
+                log_every_n_steps=10,
+                logger=mlflow_logger
+            )
+
+            print(f"FOLD {fold+1} — Starting training with {BACKBONE}")
+            trainer.fit(model, train_loader, val_loader)
+            mlflow.pytorch.log_model(model, "model")
+            print(f"FOLD {fold+1} Completed!")
 
 if __name__ == "__main__":
     main()

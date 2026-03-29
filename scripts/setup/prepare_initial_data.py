@@ -20,7 +20,7 @@ CLASS_MAP = {
 def main():
     
     gt = pd.read_csv(GT_PATH)
-    print(f"Ground Truth: {len(gt)} kayıt")
+    print(f"Ground Truth: {len(gt)}")
 
     
     def get_target(row):
@@ -36,7 +36,6 @@ def main():
     meta = pd.read_csv(META_PATH)
     print(f"Metadata: {len(meta)}")
 
-    # Merge
     df = pd.merge(gt[['image', 'targets']], meta, on='image', how='left')
     df['lesion_id'] = df['lesion_id'].fillna(df['image'])
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form
 from src.api.schemas import AnalysisResponse
 from src.api.auth import get_current_user
 from src.api.models import CLASSES
-from src.api.inference import run_hybrid_inference, apply_vignette
+from src.api.inference import run_hybrid_inference, apply_vignette , run_quick_scan, run_standard_analysis
 from src.api.gradcam import generate_heatmap
 from src.api.database import get_db
 import torch
@@ -27,7 +27,8 @@ async def analyze_image(
     needs_heatmap: bool = Form(False),
     current_user: str = Depends(get_current_user),
     full_name: str = Form(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    analysis_mode: str = Form(default="detailed")
 ):
     existing_patient = db.query(db_models.Patient).filter(
         db_models.Patient.full_name == full_name
@@ -60,7 +61,7 @@ async def analyze_image(
         int(img_w * (1 - margin)), int(img_h * (1 - margin))
     ))
 
-    # YOLO ile lezyon ara
+    
     results = ai_models.yolo_model.predict(cv_image, conf=0.25, verbose=False)
     cropped_image = center_crop  
 
@@ -82,78 +83,151 @@ async def analyze_image(
 
     processed_image = apply_vignette(cropped_image)
 
-    # Tek satırda CNN + Metadata + XGBoost orkestrasını çalıştır
-    inference_result = run_hybrid_inference(
-        processed_image, 
-        age, 
-        sex, 
-        anatom_site, 
-        ai_models.lightning_model
-    )
+    if analysis_mode == "quick":
 
-    # Sonuçları yeni sistemden ayıkla
-    final_probs = list(inference_result["all_probabilities"].values())
-    cnn_probs = list(inference_result["cnn_contribution"].values())
-    
-    top_idx = int(np.argmax(final_probs))
-    cnn_top_idx = int(np.argmax(cnn_probs))
-    cnn_max_conf = float(cnn_probs[cnn_top_idx])
-    prob_mel = float(inference_result["all_probabilities"]["MEL"])
+        result = run_quick_scan(processed_image)
 
-    final_diagnosis = CLASSES[top_idx].upper()
+        is_risky = result["is_risky"]
+        final_diagnosis = result["top_class"]
+        confidence = result["confidence"]
 
-    # Mevcut risk mantığını yeni verilerle güncelle
-    malignant_indices = [0, 2, 3, 7] # MEL, BCC, AK, SCC
-    
-    if top_idx in malignant_indices:
-        is_risky = True
-    elif cnn_top_idx in malignant_indices and cnn_max_conf > 0.40:
-        is_risky = True # Resim çok bağırıyorsa XGBoost'u bypass et
-        final_diagnosis = f"{CLASSES[cnn_top_idx].upper()} (VISUAL ALERT)"
-    elif prob_mel > 0.11: # Roadmap'teki kritik eşik değeri
-        is_risky = True
-        final_diagnosis = "MELANOMA RISK (LOW THRESHOLD)"
+        db_user = db.query(db_models.User).filter(
+            db_models.User.email == current_user
+        ).first()
+        new_analysis = db_models.Analysis(
+            patient_id=patient.id,
+            user_id=db_user.id,
+            diagnosis=final_diagnosis,
+            confidence=confidence,
+            is_risky=is_risky
+        )
+        db.add(new_analysis)
+        db.commit()
+
+        return {
+            "prediction": "Risky" if is_risky else "Benign",
+            "diagnosis": final_diagnosis,
+            "confidence": confidence,
+            "all_probabilities": {}, 
+            "heatmap_base64": "",     
+            "metadata_used": {},      
+            "debug": {
+                "mode": "quick_scan",
+                "low_confidence_warning": result["low_confidence_warning"],
+                "message": result["message"],
+                "conflict": False
+            }
+        }
+    elif analysis_mode == "standard":
+        result = run_standard_analysis(processed_image, age, sex, anatom_site)
+        final_probs = list(result["all_probabilities"].values())
+        top_idx = int(np.argmax(final_probs))
+        is_risky = top_idx in [0, 2, 3, 7]
+        confidence = result["confidence"]
+
+        db_user = db.query(db_models.User).filter(
+            db_models.User.email == current_user
+        ).first()
+        new_analysis = db_models.Analysis(
+            patient_id=patient.id,
+            user_id=db_user.id,
+            diagnosis=result["prediction"],
+            confidence=confidence,
+            is_risky=is_risky
+        )
+        db.add(new_analysis)
+        db.commit()
+
+        return {
+            "prediction": "Risky" if is_risky else "Benign",
+            "diagnosis": result["prediction"],
+            "confidence": confidence,
+            "all_probabilities": result["all_probabilities"],
+            "heatmap_base64": "",  
+            "metadata_used": {"age": str(age), "sex": sex, "site": anatom_site},
+            "debug": {
+                "mode": "standard_analysis",
+                "cnn_contribution": result["cnn_contribution"],
+                "low_confidence_warning": result["low_confidence_warning"],
+                "conflict": False
+            }
+        }
     else:
-        is_risky = False
+    
 
-    encoded_heatmap = ""
-    if needs_heatmap:
-        encoded_heatmap = generate_heatmap(
-            ai_models.lightning_model,
-            processed_image,
-            cropped_image
+    
+        inference_result = run_hybrid_inference(
+            processed_image, 
+            age, 
+            sex, 
+            anatom_site, 
+            ai_models.lightning_model
         )
 
-    has_conflict = bool(top_idx != cnn_top_idx)
+    
+        final_probs = list(inference_result["all_probabilities"].values())
+        cnn_probs = list(inference_result["cnn_contribution"].values())
+        
+        top_idx = int(np.argmax(final_probs))
+        cnn_top_idx = int(np.argmax(cnn_probs))
+        cnn_max_conf = float(cnn_probs[cnn_top_idx])
+        prob_mel = float(inference_result["all_probabilities"]["MEL"])
 
-    hybrid_all_probs = {CLASSES[i].upper(): float(final_probs[i]) for i in range(len(CLASSES))}
-    cnn_all_probs = {CLASSES[i].upper(): float(cnn_probs[i]) for i in range(len(CLASSES))}
+        final_diagnosis = CLASSES[top_idx].upper()
 
-    db_user = db.query(db_models.User).filter(
-        db_models.User.email == current_user
-    ).first()
+    
+        malignant_indices = [0, 2, 3, 7]
+        
+        if top_idx in malignant_indices:
+            is_risky = True
+        elif cnn_top_idx in malignant_indices and cnn_max_conf > 0.40:
+            is_risky = True 
+            final_diagnosis = f"{CLASSES[cnn_top_idx].upper()} (VISUAL ALERT)"
+        elif prob_mel > 0.11: 
+            is_risky = True
+            final_diagnosis = "MELANOMA RISK (LOW THRESHOLD)"
+        else:
+            is_risky = False
 
-    new_analysis = db_models.Analysis(
-        patient_id=patient.id,
-        user_id=db_user.id,
-        diagnosis=CLASSES[top_idx].upper(),
-        confidence=float(final_probs[top_idx]),
-        is_risky=is_risky
-    )
-    db.add(new_analysis)
-    db.commit()
+        encoded_heatmap = ""
+        if needs_heatmap:
+            encoded_heatmap = generate_heatmap(
+                ai_models.lightning_model,
+                processed_image,
+                cropped_image
+            )
 
-    return {
-        "prediction": "Risky" if is_risky else "Benign",
-        "diagnosis": CLASSES[top_idx].upper(),
-        "confidence": float(final_probs[top_idx]),
-        "all_probabilities": dict(sorted(hybrid_all_probs.items(), key=lambda x: x[1], reverse=True)),
-        "heatmap_base64": encoded_heatmap,
-        "metadata_used": {"age": str(age), "sex": sex, "site": anatom_site},
-        "debug": {
-            "cnn_diagnosis": CLASSES[cnn_top_idx].upper(),
-            "cnn_confidence": float(cnn_probs[cnn_top_idx]),
-            "cnn_all_probabilities": dict(sorted(cnn_all_probs.items(), key=lambda x: x[1], reverse=True)),
-            "conflict": has_conflict
+        has_conflict = bool(top_idx != cnn_top_idx)
+
+        hybrid_all_probs = {CLASSES[i].upper(): float(final_probs[i]) for i in range(len(CLASSES))}
+        cnn_all_probs = {CLASSES[i].upper(): float(cnn_probs[i]) for i in range(len(CLASSES))}
+
+        db_user = db.query(db_models.User).filter(
+            db_models.User.email == current_user
+        ).first()
+
+        new_analysis = db_models.Analysis(
+            patient_id=patient.id,
+            user_id=db_user.id,
+            diagnosis=CLASSES[top_idx].upper(),
+            confidence=float(final_probs[top_idx]),
+            is_risky=is_risky
+        )
+        db.add(new_analysis)
+        db.commit()
+
+        return {
+            "prediction": "Risky" if is_risky else "Benign",
+            "diagnosis": CLASSES[top_idx].upper(),
+            "confidence": float(final_probs[top_idx]),
+            "all_probabilities": dict(sorted(hybrid_all_probs.items(), key=lambda x: x[1], reverse=True)),
+            "heatmap_base64": encoded_heatmap,
+            "metadata_used": {"age": str(age), "sex": sex, "site": anatom_site},
+            "debug": {
+                "mode": "detailed_analysis",
+                "cnn_diagnosis": CLASSES[cnn_top_idx].upper(),
+                "cnn_confidence": float(cnn_probs[cnn_top_idx]),
+                "cnn_all_probabilities": dict(sorted(cnn_all_probs.items(), key=lambda x: x[1], reverse=True)),
+                "conflict": has_conflict
+            }
         }
-    }
