@@ -20,14 +20,14 @@ from typing import List
 class Config:
 
     #Data Path
-    DATA_PATH: str = "data/processed/just_stain"
-    CSV_PATH: str = "data/processed/oof_meta_dataset.csv"
+    DATA_PATH: str = "data/processed/full_dataset"
+    CSV_PATH: str = "data/processed/full_metadata.csv"
     RAW_DATA_PATH: str = "data/raw/all_data"
     GT_CSV_PATH: str = "data/raw/ISIC_2019_Training_GroundTruth.csv"
     META_CSV_PATH: str = "data/raw/ISIC_2019_Training_Metadata.csv"
 
     #Models
-    CHECKPOINT_DIR: str = "models/kfold_models"
+    CHECKPOINT_DIR: str = "models/vision/best_model.ckpt"
     YOLO_PATH: str = "models/detector/best.pt"
     XGB_MODEL_PATH: str = "models/xgb_meta_learner.json"
     XGB_FEATURE_PATH: str = "models/xgb_features.pkl"

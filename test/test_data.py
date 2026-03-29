@@ -154,7 +154,7 @@ class TestMetadataCSV:
         'metadata.columns' → A list of the CSV's column names
         """
 
-        required = ['image', 'targets', 'lession_id']
+        required = ['image', 'targets', 'lesion_id']
         for col in required:
             assert col in metadata.columns, f"Missing column: {col}"
 
@@ -211,8 +211,70 @@ class TestMetadataCSV:
         isnull() → returns True/False for each value (is it NaN?)
         .sum() → counts the number of True values (number of nulls)
         """
-        null_count = metadata['lession_id'].isnull().sum()
+        null_count = metadata['lesion_id'].isnull().sum()
         assert null_count ==0, f"Found {null_count} null lession_ids"
 
 
         
+class TestDatasetIntegratiy:
+    def test_dataset_folder_exists(self):
+        assert os.path.exists(cfg.DATA_PATH), \
+            pytest.skip(f"Dataset  folder not found: {cfg.DATA_PATH}")
+        
+    def test_correct_number_of_class_folders(self):
+        """
+        Are there the correct number of class folders?
+        8 classes = 8 folders.
+        If there are 7 folders → one class is missing → the model learns 7 classes
+        but there are 8 class outputs → rubbish predictions.
+        """
+
+        if not os.path.exists(cfg.DATA_PATH):
+            pytest.skip(f"Dataset not found: {cfg.DATA_PATH}")
+
+        folders = [f for f in os.listdir(cfg.DATA_PATH)
+                   if os.path.isdir(os.path.join(cfg.DATA_PATH, f))]
+        assert len(folders) == cfg.NUM_CLASSES, \
+            f"Excepted {cfg.NUM_CLASSES} class folders, found {len(folders)}: {folders}"
+        
+    def test_class_folders_match_config(self):
+        """
+        Do the folder names match the CLASSES in the config?
+
+        Config: ['0_mel', '1_nv', '2_bcc', ...]
+        Folders: ['0_mel', '1_nv', '2_bcc', ...]
+
+        If the folder is "mel" but the config says "0_mel" → ImageFolder sorts incorrectly
+        → labels shift → the model learns rubbish.
+        """
+
+        if not os.path.exists(cfg.DATA_PATH):
+            pytest.skip(f"Dataset not found: {cfg.DATA_PATH}")
+
+        folders = sorted(os.listdir(cfg.DATA_PATH))
+        excepted = sorted(cfg.CLASSES)
+        assert folders == excepted , \
+            f"Folder mismatch. \nExcepted: {excepted}\nFound: {folders}"
+        
+    def test_no_empty_class_folders(self):
+        """
+        Is there an empty class folder?
+
+        If there is an empty folder → ImageFolder skips that class → the number of classes
+        decreases → the index mapping breaks.
+
+        It is particularly important to check after running bulk_crop.py — YOLO may delete all files
+        in a class where it could not find any lesions.
+        """
+
+        if not os.path.exists(cfg.DATA_PATH):
+            pytest.skip(f"Dataset not found: {cfg.DATA_PATH}")
+
+        for class_name in cfg.CLASSES:
+            class_path = os.path.join(cfg.DATA_PATH, class_name)
+            if os.path.exists(class_path):
+                files = os.listdir(class_path)
+                assert len(files) > 0, f"Empty class folder: {class_name}"
+
+
+
