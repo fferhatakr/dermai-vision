@@ -6,7 +6,10 @@ import xgboost as xgb
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-from src.api.models import DEVICE
+from src.api import models as ai_models
+import src.api.models as ai_models
+from src.api import models as ai_models
+import src.api.models as ai_models
 
 
 XGB_MODEL_PATH = "models/meta/xgb_meta_learner.json"
@@ -75,7 +78,7 @@ def apply_tta(image):
     images = [base_transform(image)]
     for _ in range(4): 
         images.append(tta_transform(image))
-    return torch.stack(images).to(DEVICE)
+    return torch.stack(images).to("cuda")
 
 def apply_vignette(image_pil, sigma=180):
     img_cv = np.array(image_pil)
@@ -89,3 +92,82 @@ def apply_vignette(image_pil, sigma=180):
     mask_3ch = np.dstack([mask] * 3)
     vignette_img = (img_cv * mask_3ch).astype(np.uint8)
     return Image.fromarray(cv2.cvtColor(vignette_img, cv2.COLOR_BGR2RGB))
+
+def run_quick_scan(image_pil):
+    transform = transforms.Compose([
+        transforms.Resize((300,300)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    img_tensor = transform(image_pil).unsqueeze(0).numpy().astype(np.float32)
+
+    input_name = ai_models.onnx_session.get_inputs()[0].name
+    logits = ai_models.onnx_session.run(["logits"], {input_name: img_tensor})[0]
+
+    probs = torch.softmax(torch.tensor(logits), dim=1).numpy()[0]
+    
+
+    MALIGNANT_INDICES = [0, 2, 3, 7]
+    top_class = int(np.argmax(probs))
+    is_risky = top_class in MALIGNANT_INDICES
+
+
+    confidence = float(probs[top_class])
+    low_confidence = confidence < 0.35
+
+    class_names = ['MEL', 'NV', 'BCC', 'AK', 'BKL', 'DF', 'VASC', 'SCC']
+
+    return {
+        "mode": "quick_scan",
+        "is_risky": is_risky,
+        "top_class": class_names[top_class],
+        "confidence": confidence,
+        "low_confidence_warning": low_confidence,
+        "message": "RISKY — Expert assessment recommendations" if is_risky else "Low Risk"
+    }
+
+
+def run_standard_analysis(image_pil, age, sex, site):
+
+    transform = transforms.Compose([
+        transforms.Resize((300, 300)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    img_tensor = transform(image_pil).unsqueeze(0).numpy().astype(np.float32)
+
+    input_name = ai_models.onnx_session.get_inputs()[0].name
+    logits = ai_models.onnx_session.run(["logits"], {input_name: img_tensor})[0]
+    cnn_probs = torch.softmax(torch.tensor(logits), dim = 1).numpy()[0]
+
+    try:
+        sex_encoded = le_sex.transform([str(sex).lower()])[0]
+    except:
+        sex_encoded = le_sex.transform(['unknown'])[0]
+
+    try:
+        site_encoded = le_site.transform([str(site).lower()])[0]
+    except:
+        site_encoded = le_site.transform(['unknown'])[0]
+
+    clinical_data = np.array([age,sex_encoded,site_encoded])
+    feature_vector = np.concatenate([cnn_probs, clinical_data]).reshape(1, -1)
+
+    final_probs = meta_learner.predict_proba(feature_vector)[0]
+    final_class = int(np.argmax(final_probs))
+
+    class_names = ['MEL', 'NV', 'BCC', 'AK', 'BKL', 'DF', 'VASC', 'SCC']
+
+    confidence = float(final_probs[final_class])
+    low_confidence = confidence < 0.35
+
+    return {
+        "mode": "standard_analysis",
+        "prediction": class_names[final_class],
+        "confidence": confidence,
+        "low_confidence_warning": low_confidence,
+        "all_probabilities": dict(zip(class_names, final_probs.tolist())),
+        "cnn_contribution": dict(zip(class_names, cnn_probs.tolist()))
+    }
