@@ -40,13 +40,21 @@ jobs:
     - name: Create Dummy Medical Data Structure
       run: |
         mkdir -p data/processed/full_dataset/0_mel
+        touch data/processed/full_dataset/0_mel/dummy.jpg
         mkdir -p data/processed/full_dataset/1_nv
+        touch data/processed/full_dataset/1_nv/dummy.jpg
         mkdir -p data/processed/full_dataset/2_bcc
+        touch data/processed/full_dataset/2_bcc/dummy.jpg
         mkdir -p data/processed/full_dataset/3_ak
+        touch data/processed/full_dataset/3_ak/dummy.jpg
         mkdir -p data/processed/full_dataset/4_bkl
+        touch data/processed/full_dataset/4_bkl/dummy.jpg
         mkdir -p data/processed/full_dataset/5_df
+        touch data/processed/full_dataset/5_df/dummy.jpg
         mkdir -p data/processed/full_dataset/6_vasc
+        touch data/processed/full_dataset/6_vasc/dummy.jpg
         mkdir -p data/processed/full_dataset/7_scc
+        touch data/processed/full_dataset/7_scc/dummy.jpg
         mkdir -p data/processed
         echo "image,targets,lesion_id,age_approx,sex,anatom_site_general" > data/processed/full_metadata.csv
         echo "test1,0,LES_001,55.0,female,anterior torso" >> data/processed/full_metadata.csv
