@@ -8,7 +8,6 @@ from torchvision.models import (
 
 
 class DermaScanModel(nn.Module):
-    """Legacy MobileNetV3 model — kept for backward compatibility."""
     def __init__(self):
         super().__init__()
         import torchvision
@@ -28,7 +27,7 @@ class DermaScanModel(nn.Module):
 
 
 class DermaScanModelV3(nn.Module):
-    """EfficientNet-B3 backbone — current production model."""
+
     def __init__(self, num_classes=8, pretrained=True):
         super(DermaScanModelV3, self).__init__()
 

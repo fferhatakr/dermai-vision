@@ -9,33 +9,29 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Define the path to the newly generated Out-Of-Fold (OOF) metadata
 CSV_PATH = "data/processed/oof_meta_dataset.csv"
 K_FOLDS = 5
 
 def main():
-    print("Loading OOF Meta-Dataset...")
     df = pd.read_csv(CSV_PATH)
 
-    # 1. Clean up duplicate columns from the merge process
     if 'targets_x' in df.columns:
         df.rename(columns={'targets_x': 'targets'}, inplace=True)
         if 'targets_y' in df.columns:
             df.drop(columns=['targets_y'], inplace=True)
 
-    # 2. Encode categorical clinical data into numbers for XGBoost
-    print("Encoding categorical clinical features...")
+
     le_sex = LabelEncoder()
     df['sex_encoded'] = le_sex.fit_transform(df['sex'].astype(str))
 
     le_site = LabelEncoder()
     df['site_encoded'] = le_site.fit_transform(df['anatom_site_general'].astype(str))
 
-    # Save the encoders so the deployment API knows how to process new patient data
+
     joblib.dump(le_sex, "models/detector/le_sex.pkl")
     joblib.dump(le_site, "models/detector/le_site.pkl")
 
-    # 3. Define the features (inputs) and the target (output)
+
     cnn_features = ['0_mel', '1_nv', '2_bcc', '3_ak', '4_bkl', '5_df', '6_vasc', '7_scc']
     clinical_features = ['age_approx', 'sex_encoded', 'site_encoded']
     
@@ -44,9 +40,8 @@ def main():
     y = df['targets'].values
     groups = df['lesion_id'].values
 
-    print(f"\nTraining Meta-Learner with {len(feature_cols)} features: {feature_cols}")
 
-    # 4. Set up the XGBoost Model architecture
+   
     xgb_params = {
         'objective': 'multi:softprob',
         'num_class': 8,
@@ -64,7 +59,6 @@ def main():
     oof_preds = np.zeros((len(df), 8))
     fold_scores = []
 
-    # 5. Train the Meta-Learner using K-Fold Cross Validation
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(X, y, groups=groups)):
         print(f"\n--- Training Fold {fold + 1} ---")
         
@@ -92,18 +86,15 @@ def main():
             joblib.dump(feature_cols, "models/kfold_models/xgb_features.pkl")
             print("Saved production Meta-Learner model (xgb_meta_learner.json).")
 
-    # 6. Evaluate the final unified performance
-    print("\n" + "="*50)
     print("META-LEARNER FINAL OOF PERFORMANCE")
-    print("="*50)
     final_preds_classes = np.argmax(oof_preds, axis=1)
     
     class_names_clean = [name.split('_')[1].upper() for name in cnn_features]
     print(classification_report(y, final_preds_classes, target_names=class_names_clean))
     print(f"Average Melanoma F1-Score across all folds: {np.mean(fold_scores):.4f}")
 
-    # 7. Visualize the Confusion Matrix
-    print("\nGenerating Confusion Matrix...")
+
+    print("\nGenerating Confusion Matrix")
     cm = confusion_matrix(y, final_preds_classes)
     
     plt.figure(figsize=(12, 10))
@@ -118,8 +109,7 @@ def main():
     cm_filename = "models/kfold_models/meta_learner_cm.png"
     plt.savefig(cm_filename, dpi=150)
     print(f"Saved Confusion Matrix visualization to: {cm_filename}")
-    
-    # Display the plot directly on your screen
+
     plt.show()
 
 if __name__ == "__main__":

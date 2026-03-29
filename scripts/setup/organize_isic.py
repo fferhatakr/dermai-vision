@@ -25,7 +25,7 @@ CLASS_MAP = {
 
 def main():
     df = pd.read_csv(CSV_PATH)
-    print(f"CSV: {len(df)} kayıt")
+    print(f"CSV: {len(df)}")
 
     
     for folder_name in CLASS_MAP.values():

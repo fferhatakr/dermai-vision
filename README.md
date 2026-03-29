@@ -2,7 +2,7 @@
 
 ![Accuracy](https://img.shields.io/badge/Accuracy-67%25_(threshold)-blue)
 ![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-80%25_(threshold)-green)
-![CI Status](https://github.com/KULLANICI_ADIN/REPO_ADIN/actions/workflows/python-tests.yml/badge.svg)
+![CI Status](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
 ![Meta-Learner](https://img.shields.io/badge/Meta_Learner-XGBoost-darkred)
@@ -77,7 +77,7 @@ All metrics are computed using an honest evaluation infrastructure:
 - **Separated train/val metrics** — Independent torchmetrics instances prevent state contamination
 - **Correct index mapping** — ImageFolder indices properly mapped to metadata CSV
 
-### Current performance (v7, Fold 1)
+### Current performance
 
 | Metric | Standard (argmax) | With TTA | TTA + Threshold (0.11) |
 |--------|-------------------|----------|------------------------|
@@ -85,6 +85,14 @@ All metrics are computed using an honest evaluation infrastructure:
 | MEL recall | 44.9% | 47% | **80.4%** |
 | MEL F1 | 0.46 | 0.60 | **0.72** |
 | MEL precision | — | 83% | 65% |
+
+### Three-Tier Analysis Modes 
+
+| Mode | Backend | Metadata | Heatmap | Speed |
+|------|---------|----------|---------|-------|
+| Quick Scan | ONNX Runtime | No | No | ~50ms |
+| Standard Analysis | ONNX + XGBoost | Yes | No | ~150ms |
+| Detailed Analysis | PyTorch + XGBoost | Yes | Yes | ~500ms |
 
 The threshold trades MEL precision for recall — in a clinical setting, a false alarm leads to a biopsy (safe), while a missed melanoma can be fatal.
 
@@ -102,6 +110,8 @@ The threshold trades MEL precision for recall — in a clinical setting, a false
 - **Database:** PostgreSQL with SQLAlchemy ORM
 - **Frontend:** Streamlit
 - **Deployment:** Docker
+- **Experiment Tracking:** MLflow (metrics, hyperparameters, model artifacts)
+- **Inference Optimization:** ONNX Runtime (cross-platform, PyTorch-free deployment)
 
 ---
 
@@ -137,6 +147,7 @@ AI_DET_PROJECT/
 │   ├── engine/
 │   │   ├── extract_features.py 
 │   │   ├── full_evaluate.py        # TTA + threshold evaluation
+│   │   ├── export_onnx.py 
 │   │   ├── train_meta_learner.py
 │   │   └── full_train.py           # Training with backbone selection
 │   ├── training/

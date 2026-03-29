@@ -1,6 +1,36 @@
 # Changelog
 
+
+
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+
+
+## [v8.0.0] - MLOps, Three-Tier Analysis & Production Infrastructure
+
+### Added
+- **MLflow Experiment Tracking:** Automatic logging of accuracy, loss, hyperparameters and model artifacts per training run.
+- **ONNX Export:** EfficientNet-B3 exported to ONNX format (max diff: 9.5e-07), enabling cross-platform deployment without PyTorch dependency.
+- **Three-Tier Analysis System:** 
+  - Quick Scan (ONNX only, ~50ms, binary risk output)
+  - Standard Analysis (ONNX + XGBoost metadata fusion)
+  - Detailed Analysis (PyTorch + XGBoost + Grad-CAM heatmap)
+- **UI Redesign:** Dark clinical dashboard with DM Sans typography, mode selector, probability bar charts, conflict/consensus banners.
+- **CI/CD Pipeline:** GitHub Actions workflow with automated pytest, PostgreSQL service container, dummy data generation.
+- **Test Coverage:** API endpoint tests, model inference tests (shape, dtype, softmax), data pipeline tests (transforms, CSV, index mapping).
+- **Out-of-Distribution Detection:** YOLO-based rejection + confidence threshold guard (< 0.35).
+
+### Changed
+- **inference.py:** Added `run_quick_scan()` and `run_standard_analysis()` alongside existing `run_hybrid_inference()`.
+- **analyze.py:** Mode-based routing via `analysis_mode` parameter.
+- **schemas.py:** `DebugInfo` extended with Optional fields for multi-mode compatibility.
+- **models.py:** ONNX Runtime session loaded at startup alongside PyTorch model.
+
+### Research
+- **Literature Survey:** Confirmed absence of end-to-end multimodal dermoscopy AI systems in Turkey.
+- **DERM12345 Dataset:** Identified as future fine-tuning opportunity (12,345 Turkish patient images, Nature Scientific Data 2024).
+
+
+
 ## [v7.1.0] - Dockerization, CI/CD Setup & Architecture Refactoring
 
 ### Added
