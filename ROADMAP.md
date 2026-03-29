@@ -112,7 +112,20 @@ The project focuses on **Medical AI, MLOps, and Scalable Backend Systems**.
 ### ONNX Inference Optimization
 - **Goal:** Accelerate inference and enable cross-platform deployment.
 - **Deliverable:** EfficientNet-B3 ONNX export, PyTorch vs ONNX speed benchmarking.
-- **Status:** Planned
+- **Status:** Completed
+- **Result:** EfficientNet-B3 exported, max diff: 9.5e-07, cross-platform ready
+
+
+### Three-Tier Analysis System
+- **Goal:** Provide flexible analysis modes balancing speed and clinical depth.
+- **Deliverable:**
+  - **Quick Scan (ONNX):** Image-only, no metadata, ~50ms. Binary risk output. For rapid triage.
+  - **Standard Analysis (ONNX + XGBoost):** Image + clinical metadata fusion. 8-class probability distribution.
+  - **Detailed Analysis (PyTorch + XGBoost + Grad-CAM):** Full pipeline with heatmap. For suspicious cases and clinical presentation.
+  - Out-of-distribution detection: YOLO-based rejection + confidence threshold guard
+  - Mode selection via Streamlit UI
+- **Expected impact:** Production-ready deployment flexibility, clinically meaningful UX
+- **Status:** Completed
 
 ### MLflow Experiment Tracking
 - **Goal:** Automatically log every training experiment.
