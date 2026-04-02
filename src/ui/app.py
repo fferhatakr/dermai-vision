@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import os
 
-API_BASE = "http://127.0.0.1:8000"
+API_BASE = "http://derma_api:8000"
 
 st.set_page_config(
     page_title="DermaScan AI",

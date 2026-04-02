@@ -239,8 +239,8 @@ Month 3 — Research & Output
 ```
 Phase I    [====================] 100% — Completed
 Phase II   [====================] 100% — Completed
-Phase III  [=                   ]   5% — Starting
-Phase IV   [                    ]   0% — Planned
+Phase III  [====================] 100% — Starting
+Phase IV   [====================] 100% — Planned
 Phase V    [                    ]   0% — Planned
 ```
 

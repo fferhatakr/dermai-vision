@@ -183,7 +183,7 @@ async def analyze_image(
         elif cnn_top_idx in malignant_indices and cnn_max_conf > 0.40:
             is_risky = True 
             final_diagnosis = f"{CLASSES[cnn_top_idx].upper()} (VISUAL ALERT)"
-        elif prob_mel > 0.11: 
+        elif prob_mel > 0.25: 
             is_risky = True
             final_diagnosis = "MELANOMA RISK (LOW THRESHOLD)"
         else:

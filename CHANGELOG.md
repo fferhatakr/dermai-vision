@@ -4,6 +4,31 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v9.0.0] - MIDAS v1.0 — Model Upgrade & Production Release
+
+### Model
+- **MIDAS EfficientNet-B3:** Retrained from scratch — 77% accuracy, 90% MEL recall (TTA + threshold)
+- **Training fixes:** Albumentations pipeline activated, class_weights correctly passed to model, focal loss numerical stability fixed (bf16-mixed precision)
+- **Augmentation:** ElasticTransform, GridDistortion, AdvancedBlur added for dermatology-specific robustness
+- **Scheduler:** LR warmup (3 epoch LinearLR) + CosineAnnealingLR sequential scheduler
+- **Grad-CAM:** Hook layer corrected from features[-2] → features[-1] for improved localization
+
+### Meta-Learner
+- **XGBoost retrain:** Trained on new CNN OOF predictions — 85% accuracy, MEL F1: 0.84
+- **Best fold save:** Fixed fold-0 bug — production model now saved from best-performing fold
+
+### Inference
+- **ONNX export:** New model exported to ONNX format, max diff: 1.43e-06, 4.52x CPU speedup over PyTorch
+- **MEL threshold:** Updated from 0.11 → 0.25 for improved precision-recall balance
+
+### Metrics (MIDAS v1.0, TTA)
+| Metric | v8 | v9 (MIDAS) |
+|--------|----|------------|
+| Accuracy | 67% | **77%** |
+| MEL Recall | 80.4% | **90%** |
+| MEL F1 | 0.72 | **0.79** |
+| XGBoost Acc | — | **85%** |
+
 
 ## [v8.0.0] - MLOps, Three-Tier Analysis & Production Infrastructure
 

@@ -12,7 +12,7 @@ import sys
 
 sys.path.append(os.getcwd())
 from src.training.trainer_core import DermatologLightning
-from src.dataloader.image_dataset import val_transforms
+from src.dataloader.image_dataset import val_album , AlbumentationsDataset
 
 
 DATA_DIR = "data/processed/full_dataset"
@@ -27,7 +27,7 @@ def main():
     df['lesion_id'] = df['lesion_id'].fillna(df['image'])
     df.set_index('image', inplace=True)
 
-    dataset = datasets.ImageFolder(DATA_DIR, transform=val_transforms)
+    dataset = AlbumentationsDataset(DATA_DIR, album_transform=val_album)
     clean_file_names = []
     for f in dataset.imgs:
         raw_name = os.path.splitext(os.path.basename(f[0]))[0]
@@ -60,8 +60,8 @@ def main():
     
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(np.zeros(len(valid_targets)), valid_targets, groups=valid_groups)):
         
-        model_name = "best_modelv2.ckpt"
-        model_path = os.path.join("models", "kfold_models", model_name)
+        model_name = "en_iyi_colab.ckpt"
+        model_path = os.path.join("models", "ColabNew", model_name)
         
         if not os.path.exists(model_path):
             print(f"Skipping Fold {fold+1}: Model checkpoint not found at {model_path}")
@@ -76,7 +76,7 @@ def main():
         fold_image_ids = valid_image_ids[val_idx]
 
         val_subset = Subset(dataset, real_val_indices.tolist())
-        val_loader = DataLoader(val_subset, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
+        val_loader = DataLoader(val_subset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
 
         all_image_ids_ordered.extend(fold_image_ids)
 

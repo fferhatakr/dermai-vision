@@ -78,7 +78,7 @@ def apply_tta(image):
     images = [base_transform(image)]
     for _ in range(4): 
         images.append(tta_transform(image))
-    return torch.stack(images).to("cuda")
+    return torch.stack(images).to("cpu")
 
 def apply_vignette(image_pil, sigma=180):
     img_cv = np.array(image_pil)

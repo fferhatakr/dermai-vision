@@ -25,6 +25,9 @@ train_album = A.Compose([
     ], p=0.3),
     A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=20, val_shift_limit=10, p=0.3),
     A.CoarseDropout(num_holes_range=(4, 8), hole_height_range=(10, 20), hole_width_range=(10, 20), fill=0, p=0.3),
+    A.ElasticTransform(alpha=1, sigma=50, p=0.3),
+    A.GridDistortion(num_steps=5, distort_limit=0.3, p=0.2),
+    A.AdvancedBlur(blur_limit=(3, 7), p=0.2),
     A.Normalize(mean=mean, std=std),
     ToTensorV2(),
 ])

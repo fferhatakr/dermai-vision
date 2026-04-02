@@ -21,7 +21,7 @@ sys.path.append(os.getcwd())
 from src.training.trainer_core import DermatologLightning
 from configs.config import cfg
 
-CKPT_PATH = "models/vision/best_model.ckpt"
+CKPT_PATH = "models/ColabNew/en_iyi_colab.ckpt"
 ONNX_PATH = "models/onnx_model/dermascan_onnx_best_model"
 DEVICE = torch.device("cpu")
 
