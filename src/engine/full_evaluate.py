@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
 from torch.utils.data import DataLoader, Subset
-from torchvision import datasets, transforms
+from torchvision import datasets
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 import sys
 import os
 import seaborn as sns
@@ -14,46 +16,24 @@ import torch.nn.functional as F
 
 sys.path.append(os.getcwd())
 from src.training.trainer_core import DermatologLightning
-from src.dataloader.image_dataset import val_transforms
-
+from src.dataloader.image_dataset import val_album, AlbumentationsDataset
 
 CSV_PATH = "data/processed/full_metadata.csv"
-DATA_PATH = "data/processed/just_stain"
-MODEL_PATH = "models/kfold_models/best_modelv2.ckpt"  
+DATA_PATH = "data/processed/full_dataset"
+MODEL_PATH = "models/vision/midas_model.ckpt"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MEL_CLASS_IDX = 0
-USE_TTA = True  
+USE_TTA = True
 
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
 
-
 tta_transforms = [
-    val_transforms, 
-    transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.RandomHorizontalFlip(p=1.0),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=mean, std=std)
-    ]),
-    transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.RandomVerticalFlip(p=1.0),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=mean, std=std)
-    ]),
-    transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.RandomRotation(degrees=(90, 90)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=mean, std=std)
-    ]),
-    transforms.Compose([
-        transforms.Resize((300, 300)),
-        transforms.RandomRotation(degrees=(270, 270)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=mean, std=std)
-    ]),
+    A.Compose([A.Resize(300,300), A.Normalize(mean=mean,std=std), ToTensorV2()]),
+    A.Compose([A.Resize(300,300), A.HorizontalFlip(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
+    A.Compose([A.Resize(300,300), A.VerticalFlip(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
+    A.Compose([A.Resize(300,300), A.RandomRotate90(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
+    A.Compose([A.Resize(300,300), A.Transpose(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
 ]
 
 
@@ -62,7 +42,7 @@ def evaluate_with_tta(model, val_indices, data_path, device):
     all_true = []
 
     for t_idx, t in enumerate(tta_transforms):
-        dataset = datasets.ImageFolder(data_path, transform=t)
+        dataset = AlbumentationsDataset(data_path, album_transform=t)
         val_sub = Subset(dataset, val_indices)
         loader = DataLoader(val_sub, batch_size=16, shuffle=False, num_workers=0)
 
@@ -83,14 +63,12 @@ def evaluate_with_tta(model, val_indices, data_path, device):
         if t_idx == 0:
             all_true = np.array(fold_true)
 
-    
     avg_probs = np.mean(all_probs, axis=0)
     return avg_probs, all_true
 
 
 def evaluate_standard(model, val_indices, data_path, device):
-
-    dataset = datasets.ImageFolder(data_path, transform=val_transforms)
+    dataset = AlbumentationsDataset(data_path, album_transform=val_album)
     val_sub = Subset(dataset, val_indices)
     loader = DataLoader(val_sub, batch_size=16, shuffle=False, num_workers=0)
 
@@ -112,9 +90,10 @@ def find_optimal_threshold(all_probs, all_true, preds_standard):
     mel_probs = all_probs[:, MEL_CLASS_IDX]
     thresholds = np.arange(0.05, 0.50, 0.01)
 
-    best_threshold = 0.5
+    best_threshold = 0.25
     best_f1 = 0
     best_recall = 0
+    target_recall = 0.85
 
     print(f"\n{'Threshold':>8} | {'Recall':>8} | {'Precision':>10} | {'F1':>8} | {'False Alarm':>12}")
     print("-" * 60)
@@ -131,19 +110,24 @@ def find_optimal_threshold(all_probs, all_true, preds_standard):
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
-        if recall >= 0.80 and f1 > best_f1:
-            best_f1 = f1
-            best_threshold = thresh
-            best_recall = recall
+        if recall >= target_recall:
+            if f1 > best_f1:
+                best_f1 = f1
+                best_threshold = thresh
+                best_recall = recall
 
-        if thresh in [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45]:
-            print(f"{thresh:>8.2f} | {recall:>7.1%} | {precision:>9.1%} | {f1:>7.3f} | {fp:>12}")
 
     return best_threshold, best_recall, best_f1
 
 
 def main():
     df = pd.read_csv(CSV_PATH)
+   
+    df_nv = df[df['targets'] == 1]
+    df_others = df[df['targets'] != 1]
+    if len(df_nv) > 3000:
+        df_nv = df_nv.sample(n=3000, random_state=42)
+    df = pd.concat([df_nv, df_others])
     df['image'] = df['image'].str.replace('_downsampled', '')
     df['lesion_id'] = df['lesion_id'].fillna(df['image'])
     df.set_index('image', inplace=True)
@@ -169,7 +153,6 @@ def main():
     valid_targets = np.array(valid_targets)
     valid_groups = np.array(valid_groups)
 
-    
     sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
 
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(np.zeros(len(valid_targets)), valid_targets, groups=valid_groups)):
@@ -178,13 +161,11 @@ def main():
 
         real_val_indices = valid_imgfolder_indices[val_idx].tolist()
 
-       
         print(f"Model loading: {MODEL_PATH}")
         model = DermatologLightning.load_from_checkpoint(MODEL_PATH, strict=False)
         model.to(DEVICE)
         model.eval()
 
-        
         if USE_TTA:
             print(f"\nEvaluation with TTA ({len(tta_transforms)}).")
             all_probs, all_true = evaluate_with_tta(model, real_val_indices, DATA_PATH, DEVICE)
@@ -204,7 +185,6 @@ def main():
         print(f"\nOptimal MEL threshold: {best_threshold:.2f}")
         print(f"At this threshold, recall: {best_recall:.1%}, F1: {best_f1:.3f}")
 
-        
         mel_probs = all_probs[:, MEL_CLASS_IDX]
         preds_optimized = preds_standard.copy()
         preds_optimized[mel_probs >= best_threshold] = MEL_CLASS_IDX
@@ -212,7 +192,6 @@ def main():
         print(f"\nTHRESHOLD ({best_threshold:.2f}):")
         print(classification_report(all_true, preds_optimized, target_names=full_dataset.classes))
 
-        
         cm_standard = confusion_matrix(all_true, preds_standard)
         cm_optimized = confusion_matrix(all_true, preds_optimized)
 

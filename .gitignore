@@ -1,4 +1,3 @@
-
 # DATA & MODEL FILES (GENERATED / LARGE FILES)
 
 # Raw & processed datasets
@@ -36,11 +35,35 @@ __pycache__/
 
 # OS & EDITOR FILES
 
-
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 src/legacy/
 
-rm *.zip
+# ZIP FILES
+*.zip
+
+# MODEL GÖRSELLERİ
+*.png
+assets/results/
+
+# NGINX
+nginx/.htpasswd
+
+# MLFLOW
+mlflow.db
+mlruns/
+
+# DATABASE
+*.db
+*.sqlite
+
+
+*.log
+docker-compose.override.yml
+*.swp
+.nfs*
+mlflow.db
+.htpasswd
+mlruns/

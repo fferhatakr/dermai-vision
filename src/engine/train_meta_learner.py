@@ -8,7 +8,8 @@ import joblib
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import os
+os.makedirs("models/colab_new", exist_ok=True)
 CSV_PATH = "data/processed/oof_meta_dataset.csv"
 K_FOLDS = 5
 
@@ -58,7 +59,7 @@ def main():
     
     oof_preds = np.zeros((len(df), 8))
     fold_scores = []
-
+    best_fold_score = -1
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(X, y, groups=groups)):
         print(f"\n--- Training Fold {fold + 1} ---")
         
@@ -77,14 +78,16 @@ def main():
         oof_preds[val_idx] = val_preds
 
         val_preds_classes = np.argmax(val_preds, axis=1)
+
         mel_f1 = f1_score(y_val, val_preds_classes, labels=[0], average='macro')
         fold_scores.append(mel_f1)
         print(f"Fold {fold + 1} Melanoma F1-Score: {mel_f1:.4f}")
 
-        if fold == 0:
-            model.save_model("models/kfold_models/xgb_meta_learner.json")
-            joblib.dump(feature_cols, "models/kfold_models/xgb_features.pkl")
-            print("Saved production Meta-Learner model (xgb_meta_learner.json).")
+        if  mel_f1 > best_fold_score:
+            best_fold_score = mel_f1
+            model.save_model("models/xgb_metalearner/xgb_meta_learner.json")
+            joblib.dump(feature_cols, "models/xgb_metalearner/xgb_features.pkl")
+            print(f"New best model saved at fold {fold+1} (MEL F1: {mel_f1:.4f})")
 
     print("META-LEARNER FINAL OOF PERFORMANCE")
     final_preds_classes = np.argmax(oof_preds, axis=1)
@@ -106,7 +109,7 @@ def main():
     plt.xlabel('Meta-Learner Prediction', fontsize=12)
     
     plt.tight_layout()
-    cm_filename = "models/kfold_models/meta_learner_cm.png"
+    cm_filename = "models/colab_new/meta_learner_cm.png"
     plt.savefig(cm_filename, dpi=150)
     print(f"Saved Confusion Matrix visualization to: {cm_filename}")
 

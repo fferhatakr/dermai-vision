@@ -1,7 +1,9 @@
 # DermaScan AI — Multimodal Clinical Decision Support System
 
-![Accuracy](https://img.shields.io/badge/Accuracy-67%25_(threshold)-blue)
-![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-80%25_(threshold)-green)
+![Accuracy](https://img.shields.io/badge/Accuracy-77%25_(TTA)-blue)
+![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-90%25_(threshold)-green)
+![XGBoost](https://img.shields.io/badge/XGBoost_Accuracy-85%25-darkred)
+![ONNX](https://img.shields.io/badge/ONNX_Speedup-4.52x-orange)
 ![CI Status](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
@@ -36,7 +38,7 @@ graph LR
     F --> G
     G -->|Input| H{XGBoost Meta-Learner}
     H -->|Hybrid Probs| I{Safety Override + MEL Threshold}
-    I -->|MEL prob > 0.11| J[RISKY — Refer to Specialist]
+    I -->|MEL prob > 0.25| J[RISKY — Refer to Specialist]
     I -->|Consensus| K[Final Diagnosis]
 ```
 
@@ -79,12 +81,13 @@ All metrics are computed using an honest evaluation infrastructure:
 
 ### Current performance
 
-| Metric | Standard (argmax) | With TTA | TTA + Threshold (0.11) |
-|--------|-------------------|----------|------------------------|
-| Overall accuracy | 62.6% | 64% | **67%** |
-| MEL recall | 44.9% | 47% | **80.4%** |
-| MEL F1 | 0.46 | 0.60 | **0.72** |
-| MEL precision | — | 83% | 65% |
+| Metric | Standard (argmax) | TTA | TTA + Threshold (0.25) |
+|--------|-------------------|-----|------------------------|
+| Overall accuracy | 70% | 77% | **77%** |
+| MEL recall | 55% | 90% | **90%** |
+| MEL F1 | 0.68 | 0.79 | **0.79** |
+| XGBoost accuracy | — | — | **85%** |
+
 
 ### Three-Tier Analysis Modes 
 

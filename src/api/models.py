@@ -10,8 +10,8 @@ from src.training.trainer_core import DermatologLightning
 from ultralytics import YOLO
 
 YOLO_PATH = "models/detector/best.pt"
-CKPT_PATH = "models/vision/best_model.ckpt"  
-ONNX_PATH = "models/onnx_model/dermascan_onnx_best_model"
+CKPT_PATH = "models/vision/midas_model.ckpt"  
+ONNX_PATH = "models/onnx_model/midas_onnx"
 XGB_MODEL_PATH = "models/meta/xgb_meta_learner.json"
 XGB_FEATURES_PATH = "models/meta/xgb_features.pkl"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

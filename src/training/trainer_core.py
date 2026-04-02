@@ -45,8 +45,8 @@ class DermatologLightning(pl.LightningModule):
     
         try:
             if backbone == "efficientnet_b3":
-                self.model.backbone.features[-2].register_forward_hook(self.save_activations)
-                self.model.backbone.features[-2].register_full_backward_hook(self.backward_gradients)
+                self.model.backbone.features[-1].register_forward_hook(self.save_activations)
+                self.model.backbone.features[-1].register_full_backward_hook(self.backward_gradients)
             elif backbone == "convnext_tiny":
                 self.model.backbone.features[-1].register_forward_hook(self.save_activations)
                 self.model.backbone.features[-1].register_full_backward_hook(self.backward_gradients)
@@ -66,7 +66,6 @@ class DermatologLightning(pl.LightningModule):
         ce_loss = F.cross_entropy(
             logits, labels,
             weight=self.class_weights,
-            label_smoothing=0.1,
             reduction='none'
         )
         pt = torch.exp(-ce_loss)
@@ -102,10 +101,16 @@ class DermatologLightning(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=1e-4)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        warmup = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=0.1, end_factor=1.0, total_iters=3
+        )
+        cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=self.max_epochs-3 , eta_min=1e-6
+        )
+        scheduler = torch.optim.lr_scheduler.SequentialLR(
             optimizer,
-            T_max=self.max_epochs,
-            eta_min=1e-6
+            schedulers=[warmup, cosine],
+            milestones=[3]
         )
 
         return {
