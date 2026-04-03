@@ -4,6 +4,32 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+
+## [v9.1.0] 
+
+### Added
+- **DERM12345 Fine-Tuning Pipeline** — Enabled switching between ISIC-only and fine-tuning modes via `full_train.py` MODE="finetune"
+- **HSV Hair Removal** — Added `remove_hair_hsv()` function to `image_dataset.py`
+  for hair artifact removal using OpenCV TELEA inpainting
+- **Hair Simulation Augmentation** — Added custom `HairSimulation` Albumentations
+  transform to improve robustness against hair artifacts
+- **PH2 Cross-Dataset Evaluation** — `evaluation/ph2_crossdataset_eval.py`
+  used for ISIC-only vs DERM12345 fine-tuned model comparison
+- **Dataset Overlap Check** — `evaluation/dataset_overlap_check.py`
+  added for dataset overlap validation
+
+### Results
+| Metric | ISIC-only | Fine-tuned | Delta |
+|---|---|---|---|
+| PH2 Accuracy (argmax) | 41.5% | 41.0% | -0.5 |
+| MEL Recall | 87.5% | 90.0% | **+2.5** |
+| MEL F1 | 0.407 | 0.414 | **+0.7** |
+
+### Notes
+- Domain shift confirmed: 35.5 point drop from ISIC (77%) to PH2 (41.5%)
+- MEL recall preserved across datasets — clinical safety threshold holds
+- HAM10000 overlap with ISIC 2019: 4,887 images (Cassidy et al., 2021)
+
 ## [v9.0.0] - MIDAS v1.0 — Model Upgrade & Production Release
 
 ### Model
