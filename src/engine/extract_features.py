@@ -11,7 +11,7 @@ from sklearn.model_selection import StratifiedGroupKFold
 import sys
 
 sys.path.append(os.getcwd())
-from src.training.trainer_core import DermatologLightning
+from engine.trainer_core import DermatologLightning
 from src.dataloader.image_dataset import val_album , AlbumentationsDataset
 
 

@@ -6,7 +6,7 @@ import sys
 import onnxruntime as ort 
 
 sys.path.append(os.getcwd())
-from src.training.trainer_core import DermatologLightning
+from engine.trainer_core import DermatologLightning
 from ultralytics import YOLO
 
 YOLO_PATH = "models/detector/best.pt"

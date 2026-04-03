@@ -18,7 +18,7 @@ import os
 
 
 sys.path.append(os.getcwd())
-from src.training.trainer_core import DermatologLightning
+from engine.trainer_core import DermatologLightning
 from configs.config import cfg
 
 CKPT_PATH = "models/ColabNew/en_iyi_colab.ckpt"

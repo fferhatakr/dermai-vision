@@ -233,7 +233,7 @@ def run_comparison():
 
     try:
         import onnxruntime as ort
-        from src.training.trainer_core import DermatologLightning
+        from engine.trainer_core import DermatologLightning
     except ImportError as e:
         print(f"error: {e}")
         return
