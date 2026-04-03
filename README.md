@@ -2,21 +2,13 @@
 
 ![Accuracy](https://img.shields.io/badge/Accuracy-77%25_(TTA)-blue)
 ![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-90%25_(threshold)-green)
-![XGBoost](https://img.shields.io/badge/XGBoost_Accuracy-85%25-darkred)
 ![ONNX](https://img.shields.io/badge/ONNX_Speedup-4.52x-orange)
-![Cross-Dataset](https://img.shields.io/badge/Cross--Dataset-PH2_Validated-purple)
-![Fine-Tuned](https://img.shields.io/badge/Fine--Tuned-DERM12345-darkgreen)
 ![CI Status](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
-![Meta-Learner](https://img.shields.io/badge/Meta_Learner-XGBoost-darkred)
-![Detection](https://img.shields.io/badge/Detection-YOLOv8-red)
-![Technique](https://img.shields.io/badge/Tech-Focal_Loss_%2B_TTA_%2B_Threshold-orange)
-![Explainability](https://img.shields.io/badge/XAI-Grad--CAM-yellow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Auth](https://img.shields.io/badge/Auth-JWT-informational)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql)
+
 
 ## Disclaimer
 
@@ -72,15 +64,6 @@ graph LR
 - Dynamic safety alerts when visual suspicion overrides clinical metadata
 
 ---
-
-## Evaluation Methodology
-
-All metrics are computed using an honest evaluation infrastructure:
-
-- **StratifiedGroupKFold** — Lesion-based splitting prevents data leakage (same lesion never appears in both train and val)
-- **Separated train/val metrics** — Independent torchmetrics instances prevent state contamination
-- **Correct index mapping** — ImageFolder indices properly mapped to metadata CSV
-
 ### Current performance
 
 | Metric | Standard (argmax) | TTA | TTA + Threshold (0.25) |
@@ -90,19 +73,7 @@ All metrics are computed using an honest evaluation infrastructure:
 | MEL F1 | 0.68 | 0.79 | **0.79** |
 | XGBoost accuracy | — | — | **85%** |
 
-### Cross-Dataset Generalization (PH2)
-
-Independent evaluation on PH2 dataset (zero overlap with ISIC 2019 training data):
-
-| Metric | ISIC-only | DERM12345 Fine-tuned |
-|---|---|---|
-| Accuracy (argmax) | 41.5% | 41.0% |
-| MEL Recall | 87.5% | 90.0% |
-| MEL F1 | 0.407 | 0.414 |
-
-Domain shift of 35.5 points confirmed. MEL recall preserved — clinical safety holds on unseen data.
-Reference: Cassidy et al. (2021), *Medical Image Analysis*.
-
+For detailed cross-dataset evaluation (PH2), methodology, and domain shift analysis, refer to [RESEARCH_NOTES.md](RESEARCH_NOTES.md)
 
 ### Three-Tier Analysis Modes 
 
@@ -117,13 +88,6 @@ The threshold trades MEL precision for recall — in a clinical setting, a false
 ---
 
 ## Tech Stack
-
-- **Vision backbone:** EfficientNet-B3 (11.5M params, 300x300 input)
-- **Lesion detection:** YOLOv8
-- **Meta-learner:** XGBoost (late fusion with OOF training)
-- **Loss function:** Focal Loss with label smoothing
-- **Explainability:** Grad-CAM on penultimate convolutional layer
-- **Inference:** Test-Time Augmentation (5-view voting)
 - **Backend:** FastAPI with JWT authentication
 - **Database:** PostgreSQL with SQLAlchemy ORM
 - **Frontend:** Streamlit
@@ -131,59 +95,6 @@ The threshold trades MEL precision for recall — in a clinical setting, a false
 - **Experiment Tracking:** MLflow (metrics, hyperparameters, model artifacts)
 - **Inference Optimization:** ONNX Runtime (cross-platform, PyTorch-free deployment)
 
----
-
-## File Structure
-
-```text
-AI_DET_PROJECT/
-├── data/
-│   ├── processed/
-│   └── raw/
-├── scripts/
-│   └── setup/
-│   │   ├── organize_isic.py
-│   │   └── prepare_initial_data.py
-├── src/
-│   ├── api/
-│   │   ├── routes/
-│   │   │   ├── analyze.py          # Diagnosis endpoint with safety override
-│   │   │   ├── patients.py
-│   │   │   └── users.py
-│   │   ├── auth.py                 # JWT authentication
-│   │   ├── database.py             # PostgreSQL connection
-│   │   ├── db_models.py            # SQLAlchemy models
-│   │   ├── gradcam.py              # Grad-CAM heatmap generation
-│   │   ├── inference.py            # TTA and preprocessing
-│   │   ├── main.py                 # FastAPI app
-│   │   ├── models.py               # Model loading
-│   │   └── schemas.py              # Pydantic schemas
-│   ├── architectures/
-│   │   └── vision_models.py        # EfficientNet-B3, ConvNeXt-Tiny
-│   ├── dataloader/
-│   │   └── image_dataset.py        # Transforms and data loading
-│   ├── engine/
-│   │   ├── extract_features.py 
-│   │   ├── full_evaluate.py        # TTA + threshold evaluation
-│   │   ├── export_onnx.py 
-│   │   ├── train_meta_learner.py
-│   │   └── full_train.py           # Training with backbone selection
-│   ├── training/
-│   │   ├── train_meta.py           # XGBoost meta-learner training
-│   │   └── trainer_core.py         # PyTorch Lightning module
-│   ├── ui/
-│   │   └── app.py                  # Streamlit dashboard
-│   └── utils/
-│       └── helpers.py
-├── test/
-├── .env
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── CHANGELOG.md
-├── ROADMAP.md
-└── README.md
-```
 
 ---
 
