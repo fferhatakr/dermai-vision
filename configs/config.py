@@ -55,6 +55,16 @@ class Config:
     FOCAL_GAMMA:float = 2.0
     RANDOM_SEED: int = 42
 
+    #Fine-Tuning Mode Settings
+    MODE: str = "finetune"
+    DERM12345_TRAIN: str = "data/derm12345/train"
+    DERM12345_VAL: str = "data/derm12345/val"
+    FINE_TUNE_CHECKPOINT: str = "models/vision/midas_model.ckpt"
+    FINTETUNE_LR: float = 1e-5 #Checkpoint is already in a good position high LR weights will ruin it.
+    FINETUNE_BATCH: int = 8
+    FINE_TUNE_ACCUM: int = 8
+    FINETUNE_EPOCHS: int = 15
+
 
     #EVALUATION
     MEL_THRESHOLD: float = 0.11

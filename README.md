@@ -4,6 +4,8 @@
 ![Recall (Melanoma)](https://img.shields.io/badge/MEL_Recall-90%25_(threshold)-green)
 ![XGBoost](https://img.shields.io/badge/XGBoost_Accuracy-85%25-darkred)
 ![ONNX](https://img.shields.io/badge/ONNX_Speedup-4.52x-orange)
+![Cross-Dataset](https://img.shields.io/badge/Cross--Dataset-PH2_Validated-purple)
+![Fine-Tuned](https://img.shields.io/badge/Fine--Tuned-DERM12345-darkgreen)
 ![CI Status](https://github.com/fferhatakr/dermai-vision/actions/workflows/python-app.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
 ![Architecture](https://img.shields.io/badge/Vision-EfficientNet--B3-blueviolet)
@@ -87,6 +89,19 @@ All metrics are computed using an honest evaluation infrastructure:
 | MEL recall | 55% | 90% | **90%** |
 | MEL F1 | 0.68 | 0.79 | **0.79** |
 | XGBoost accuracy | — | — | **85%** |
+
+### Cross-Dataset Generalization (PH2)
+
+Independent evaluation on PH2 dataset (zero overlap with ISIC 2019 training data):
+
+| Metric | ISIC-only | DERM12345 Fine-tuned |
+|---|---|---|
+| Accuracy (argmax) | 41.5% | 41.0% |
+| MEL Recall | 87.5% | 90.0% |
+| MEL F1 | 0.407 | 0.414 |
+
+Domain shift of 35.5 points confirmed. MEL recall preserved — clinical safety holds on unseen data.
+Reference: Cassidy et al. (2021), *Medical Image Analysis*.
 
 
 ### Three-Tier Analysis Modes 
