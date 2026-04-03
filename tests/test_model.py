@@ -142,7 +142,7 @@ class TestLightningModule:
 
         assert model is not None → Has the model object been created?
         """
-        from src.training.trainer_core import DermatologLightning
+        from engine.trainer_core import DermatologLightning
         model= DermatologLightning(backbone="efficientnet_b3")
         assert model is not None
 
@@ -157,7 +157,7 @@ class TestLightningModule:
         
         """
 
-        from src.training.trainer_core import DermatologLightning
+        from engine.trainer_core import DermatologLightning
 
         weights = torch.ones(cfg.NUM_CLASSES)
         model = DermatologLightning(
@@ -193,7 +193,7 @@ class TestLightningModule:
         a is not b → True (different objects — this is what we want!)"""
 
 
-        from src.training.trainer_core import DermatologLightning
+        from engine.trainer_core import DermatologLightning
 
         model = DermatologLightning(backbone="efficientnet_b3")
         assert model.train_accuracy is not model.val_accuracy, \
@@ -209,7 +209,7 @@ class TestLightningModule:
         work together."""
 
 
-        from src.training.trainer_core import DermatologLightning
+        from engine.trainer_core import DermatologLightning
 
         model = DermatologLightning(backbone="efficientnet_b3")
         model.eval()
