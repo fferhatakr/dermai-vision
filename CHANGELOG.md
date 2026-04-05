@@ -2,6 +2,15 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v2.3.0] - Async LLM Pipeline & UI Refactor
+
+### Added
+- Dedicated `/report` endpoint separating LLM generation from vision inference.
+- Two-phase analysis flow: visual results render immediately, clinical report loads asynchronously.
+- Step-by-step progress bar during Detailed Analysis.
+- AI Clinical Report section with full Markdown rendering.
+- Modular UI architecture split across 6 components.
+
 ## [v2.2.0] -LLM Clinical Decision Support
 ### Added
 - Integrated LLM-driven CDSS to generate professional-grade clinical summaries.
