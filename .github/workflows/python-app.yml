@@ -80,6 +80,6 @@ jobs:
         DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@localhost:5432/dermascan
         JWT_SECRET: ci_test_secret
       run: |
-        pytest test/test_data.py
-        pytest test/test_model.py
-        pytest test/test_api.py
+        pytest tests/test_data.py
+        pytest tests/test_model.py
+        pytest tests/test_api.py

@@ -2,6 +2,13 @@
 
 All notable architectural changes, pipeline upgrades, and model iterations for the Skin Cancer Detection project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v2.2.0] -LLM Clinical Decision Support
+### Added
+- Integrated LLM-driven CDSS to generate professional-grade clinical summaries.
+- Implemented personalized patient routing and medical guidance protocols.
+- Synthesized vision model predictions with clinical metadata for holistic reporting.
+
+
 ## [v2.1.0] - Fine-Tuning and Simulation
 ### Added
 - DERM12345 Fine-Tuning Pipeline with mode switching capability.

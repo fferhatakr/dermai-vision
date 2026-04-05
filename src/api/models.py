@@ -6,14 +6,14 @@ import sys
 import onnxruntime as ort 
 
 sys.path.append(os.getcwd())
-from engine.trainer_core import DermatologLightning
+from src.engine.trainer_core import DermatologLightning
 from ultralytics import YOLO
 
-YOLO_PATH = "models/detector/best.pt"
-CKPT_PATH = "models/vision/midas_model.ckpt"  
-ONNX_PATH = "models/onnx_model/midas_onnx"
-XGB_MODEL_PATH = "models/meta/xgb_meta_learner.json"
-XGB_FEATURES_PATH = "models/meta/xgb_features.pkl"
+YOLO_PATH = "experiments/models/detector/best.pt"
+CKPT_PATH = "experiments/models/vision/midas_model.ckpt"  
+ONNX_PATH = "experiments/models/onnx_model/midas_onnx"
+XGB_MODEL_PATH = "experiments/models/meta/xgb_meta_learner.json"
+XGB_FEATURES_PATH = "experiments/models/meta/xgb_features.pkl"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 CLASSES = ['0_mel', '1_nv', '2_bcc', '3_ak', '4_bkl', '5_df', '6_vasc', '7_scc']
 

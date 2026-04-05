@@ -11,18 +11,18 @@ COPY src /app/src
 COPY configs /app/configs
 
 # Vision model
-COPY models/vision/midas_model.ckpt /app/models/vision/
+COPY experiments/models/vision/midas_model.ckpt /app/experiments/models/vision/
 
 # ONNX model
-COPY models/onnx_model/midas_onnx /app/models/onnx_model/midas_onnx
+COPY experiments/models/onnx_model/midas_onnx /app/experiments/models/onnx_model/midas_onnx
 
 # Meta learner
-COPY models/meta/xgb_meta_learner.json /app/models/meta/
-COPY models/meta/xgb_features.pkl /app/models/meta/
-COPY models/meta/le_sex.pkl /app/models/meta/
-COPY models/meta/le_site.pkl /app/models/meta/
+COPY experiments/models/meta/xgb_meta_learner.json /app/experiments/models/meta/
+COPY experiments/models/meta/xgb_features.pkl /app/experiments/models/meta/
+COPY experiments/models/meta/le_sex.pkl /app/experiments/models/meta/
+COPY experiments/models/meta/le_site.pkl /app/experiments/models/meta/
 
 # YOLO detector
-COPY models/detector/best.pt /app/models/detector/
+COPY experiments/models/detector/best.pt /app/experiments/models/detector/
 
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 && rm -rf /var/lib/
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY test_samples /app/test_samples
+COPY assets/demo_images /app/assets/demo_images
 
 
 COPY src /app/src

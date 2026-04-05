@@ -18,6 +18,7 @@ class DebugInfo(BaseModel):
 
     cnn_contribution: Optional[Dict[str,float]] = None
 class AnalysisResponse(BaseModel):
+    clinical_report: str = ""
     prediction: str
     diagnosis: str
     confidence: float
