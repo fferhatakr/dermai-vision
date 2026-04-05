@@ -1,6 +1,8 @@
 services:
   db:
     image: postgres:16
+    ports:
+      - "5444:5432"
     container_name: derma_db
     environment:
       POSTGRES_USER: postgres
@@ -10,17 +12,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+    networks:
+      - derma_network
 
   api:
     build: .
     container_name: derma_api
-    
+    ports:
+      - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/dermascan
       SECRET_KEY: ${SECRET_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     depends_on:
       - db
     restart: always
+    networks:
+      - derma_network
 
   ui:
     build:
@@ -33,6 +41,8 @@ services:
     depends_on:
       - api
     restart: always
+    networks:
+      - derma_network
 
   nginx:
     image: nginx:alpine
@@ -45,6 +55,12 @@ services:
     depends_on:
       - ui
     restart: always
+    networks:
+      - derma_network
 
 volumes:
   postgres_data:
+  
+networks:
+  derma_network:
+    driver: bridge

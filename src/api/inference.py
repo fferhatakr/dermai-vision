@@ -12,10 +12,10 @@ from src.api import models as ai_models
 import src.api.models as ai_models
 
 
-XGB_MODEL_PATH = "models/meta/xgb_meta_learner.json"
-XGB_FEATURES_PATH = "models/meta/xgb_features.pkl"
-LE_SEX_PATH = "models/meta/le_sex.pkl"
-LE_SITE_PATH = "models/meta/le_site.pkl"
+XGB_MODEL_PATH = "experiments/models/meta/xgb_meta_learner.json"
+XGB_FEATURES_PATH = "experiments/models/meta/xgb_features.pkl"
+LE_SEX_PATH = "experiments/models/meta/le_sex.pkl"
+LE_SITE_PATH = "experiments/models/meta/le_site.pkl"
 
 
 meta_learner = xgb.XGBClassifier()
@@ -31,6 +31,8 @@ def run_hybrid_inference(image_pil, age, sex, site, vision_model):
 
     tta_batch = apply_tta(image_pil) 
     with torch.no_grad():
+        device = next(vision_model.parameters()).device
+        tta_batch = tta_batch.to(device)
         logits = vision_model(tta_batch)
         probs = F.softmax(logits, dim=1).cpu().numpy()
         avg_cnn_probs = np.mean(probs, axis=0)

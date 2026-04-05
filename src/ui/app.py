@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import os
 
-API_BASE = "http://derma_api:8000"
+API_BASE = os.getenv("API_URL", "http://localhost:8000")
 
 st.set_page_config(
     page_title="DermaScan AI",
@@ -535,7 +535,7 @@ image_ready = False
 with col_img:
     st.markdown('<p class="ds-section-label">Dermoscopic Image</p>', unsafe_allow_html=True)
 
-    sample_folder = "test_samples"
+    sample_folder = "assets/demo_images"
     samples = os.listdir(sample_folder) if os.path.exists(sample_folder) else []
     selected_sample = st.selectbox("Test sample", ["None"] + samples)
 
@@ -738,6 +738,27 @@ if analyze_btn and image_ready and full_name:
                             overlay = cv2.addWeighted(orig_cv, 0.6, hm_img, 0.4, 0)
                             st.image(overlay, use_container_width=True)
                             st.markdown('<p class="ds-img-caption">Attention map — blue: low / red: high suspicion</p>', unsafe_allow_html=True)
+
+                            clinical_report = result.get("clinical_report", "")
+                            if clinical_report:
+                                st.markdown('<hr class="ds-divider">', unsafe_allow_html=True)
+                                st.markdown('<p class="ds-section-label">AI Clinical Report</p>', 
+                                            unsafe_allow_html=True)
+                                
+                                # ds-card ve ds-card-accent sınıfları zaten CSS'inde tanımlı
+                                # beyaz arka plan yerine projenin koyu temasına uygun görünüm sağlar
+                                st.markdown(f"""
+                                <div class="ds-card ds-card-accent">
+                                    <pre style="
+                                        white-space: pre-wrap;
+                                        font-family: 'DM Sans', sans-serif;
+                                        font-size: 0.82rem;
+                                        color: #c8d0dc;
+                                        line-height: 1.7;
+                                        margin: 0;
+                                    ">{clinical_report}</pre>
+                                </div>
+                                """, unsafe_allow_html=True)
 
                
                 if selected_mode == "quick":
