@@ -14,7 +14,6 @@ import io
 import src.api.models as ai_models
 from src.api import db_models
 from sqlalchemy.orm import Session
-from src.api.llm_report import generate_clinical_report
 
 router = APIRouter(tags=["analysis"])
 
@@ -217,15 +216,7 @@ async def analyze_image(
         db.add(new_analysis)
         db.commit()
 
-        clinical_report = generate_clinical_report(
-            diagnosis=CLASSES[top_idx].upper(),
-            confidence=float(final_probs[top_idx]),
-            all_probs=hybrid_all_probs,
-            is_risky=is_risky,
-            age=age,
-            sex=sex,
-            anatom_site=anatom_site
-        )
+
 
         return {
             "prediction": "Risky" if is_risky else "Benign",
@@ -240,6 +231,5 @@ async def analyze_image(
                 "cnn_confidence": float(cnn_probs[cnn_top_idx]),
                 "cnn_all_probabilities": dict(sorted(cnn_all_probs.items(), key=lambda x: x[1], reverse=True)),
                 "conflict": has_conflict
-            },
-            "clinical_report": clinical_report
+            }
         }

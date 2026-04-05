@@ -7,7 +7,7 @@ import anthropic
 import os
 
 
-client = anthropic.Anthropic(
+client = anthropic.AsyncAnthropic(
     api_key=os.getenv("ANTHROPIC_API_KEY")
 )
 
@@ -29,7 +29,7 @@ CLASS_DESCRIPTIONS = {
 
 MALIGNANT_CLASSES = {"MEL", "BCC", "AK" , "SCC"}
 
-def generate_clinical_report(
+async def generate_clinical_report(
         diagnosis: str,
         confidence: float,
         all_probs: dict,
@@ -102,7 +102,7 @@ Generate a structured clinical report with exactly the following sections:
 Keep the tone formal, clinical, and precise. Use standard dermatological terminology."""
     
     try:
-        response = client.messages.create(
+        response = await client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             messages=[
