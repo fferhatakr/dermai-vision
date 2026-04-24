@@ -26,3 +26,10 @@ class AnalysisResponse(BaseModel):
     heatmap_base64: str
     metadata_used: Dict[str, str]
     debug: DebugInfo
+
+class FeedbackCreate(BaseModel):
+    inference_id : int
+    is_correct: bool
+    corrected_diagnosis: Optional[str] = None
+    doctor_notes : Optional[str] = None
+    
