@@ -62,6 +62,11 @@ class DermatologLightning(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    """
+    Focal Loss calculates. Unlike standard cross-entropy,
+    it reduces the weight of easy examples that the model is already certain about using (1-pt)².
+    This allows the model to focus more on rare and difficult classes.
+    Additionally, class_weights corrects for class imbalance."""
     def compute_loss(self, logits, labels):
         ce_loss = F.cross_entropy(
             logits, labels,
@@ -104,6 +109,10 @@ class DermatologLightning(pl.LightningModule):
         warmup = torch.optim.lr_scheduler.LinearLR(
             optimizer, start_factor=0.1, end_factor=1.0, total_iters=3
         )
+        
+        """
+        We start by taking big steps at the beginning to help them learn better
+        and then we slow down our pace to ensure more effective learning"""
         cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=self.max_epochs-3 , eta_min=1e-6
         )
