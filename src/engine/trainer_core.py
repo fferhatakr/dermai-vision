@@ -5,18 +5,23 @@ import torch.nn.functional as F
 from torchmetrics import F1Score, Accuracy
 import numpy as np
 
-num_classes = 8
 
 
 class DermatologLightning(pl.LightningModule):
-    def __init__(self, class_weights=None, backbone="efficientnet_b3", lr=1e-4, max_epochs=25):
+    def __init__(
+        self,
+        num_classes,
+        backbone,
+        lr,
+        max_epochs,
+        weight_decay,
+        focal_gamma,
+        warmup_epochs,
+        class_weights=None
+    ):
         super().__init__()
         self.save_hyperparameters(ignore=['class_weights'])
 
-        self.lr = lr
-        self.max_epochs = max_epochs
-
-        
         if backbone == "efficientnet_b3":
             from src.architectures.vision_model import DermaScanModelV3
             self.model = DermaScanModelV3(num_classes=num_classes)
@@ -32,24 +37,19 @@ class DermatologLightning(pl.LightningModule):
             self.class_weights = None
 
         
-        self.train_accuracy = Accuracy(task="multiclass", num_classes=num_classes)
-        self.val_accuracy = Accuracy(task="multiclass", num_classes=num_classes)
-        self.val_f1_per_class = F1Score(task="multiclass", num_classes=num_classes, average=None)
+        self.train_accuracy = Accuracy(task="multiclass", num_classes=self.hparams.num_classes)
+        self.val_accuracy = Accuracy(task="multiclass", num_classes=self.hparams.num_classes)
+        self.val_f1_per_class = F1Score(task="multiclass", num_classes=self.hparams.num_classes, average=None)
 
         self.activations = None
         self.gradients = None
-
         self._register_hooks(backbone)
 
     def _register_hooks(self, backbone):
-    
         try:
-            if backbone == "efficientnet_b3":
-                self.model.backbone.features[-1].register_forward_hook(self.save_activations)
-                self.model.backbone.features[-1].register_full_backward_hook(self.backward_gradients)
-            elif backbone == "convnext_tiny":
-                self.model.backbone.features[-1].register_forward_hook(self.save_activations)
-                self.model.backbone.features[-1].register_full_backward_hook(self.backward_gradients)
+            target_layer = self.model.backbone.features[-1]
+            target_layer.register_forward_hook(self.save_activations)
+            target_layer.register_full_backward_hook(self.backward_gradients)
         except Exception as e:
             print(f"GradCAM hook warning: {e}")
 
@@ -74,7 +74,7 @@ class DermatologLightning(pl.LightningModule):
             reduction='none'
         )
         pt = torch.exp(-ce_loss)
-        focal_loss = ((1 - pt) ** 2.0) * ce_loss
+        focal_loss = ((1 - pt) ** self.hparams.focal_gamma) * ce_loss
         return focal_loss.mean()
 
     def training_step(self, batch, batch_idx):
@@ -105,21 +105,30 @@ class DermatologLightning(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=1e-4)
+        optimizer = torch.optim.AdamW(
+            self.parameters(), 
+            lr=self.hparams.lr, 
+            weight_decay=self.hparams.weight_decay
+        )
         warmup = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=0.1, end_factor=1.0, total_iters=3
+            optimizer,
+            start_factor=0.1, 
+            end_factor=1.0, 
+            total_iters=self.hparams.warmup_epochs
         )
         
         """
         We start by taking big steps at the beginning to help them learn better
         and then we slow down our pace to ensure more effective learning"""
         cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.max_epochs-3 , eta_min=1e-6
+            optimizer, 
+            T_max=self.hparams.max_epochs - self.hparams.warmup_epochs , 
+            eta_min=1e-6
         )
         scheduler = torch.optim.lr_scheduler.SequentialLR(
             optimizer,
             schedulers=[warmup, cosine],
-            milestones=[3]
+            milestones=[self.hparams.warmup_epochs]
         )
 
         return {
@@ -130,7 +139,7 @@ class DermatologLightning(pl.LightningModule):
             },
         }
 
-    def generate_gradcam(self, input_image, target_class=None):
+    def generate_gradcam(self, input_image, target_class=None,margin=0.20):
         if input_image.grad is not None:
             input_image.grad.zero_()
 
@@ -142,28 +151,24 @@ class DermatologLightning(pl.LightningModule):
             pred_idx = torch.tensor(target_class)
 
         score = logits[:, pred_idx]
-
         self.zero_grad()
         score.backward(retain_graph=True)
 
         maps = self.activations
         derivative = self.gradients
-
         weights = derivative.mean(dim=[2, 3], keepdim=True)
         multiplication_table = maps * weights
 
         single_map = multiplication_table.sum(dim=1, keepdim=True)
         positive_map = F.relu(single_map)
         cam = positive_map.squeeze().detach().cpu().numpy()
+        
         h, w = cam.shape
-        margin_h = int(h * 0.10)
-        margin_w = int(w * 0.10)
-        cam[:margin_h, :] = 0
-        cam[-margin_h:, :] = 0
-        cam[:, :margin_w] = 0
-        cam[:, -margin_w:] = 0
+        mh = int(h * margin)
+        mw = int(w * margin)
+        cam[:mh, :] = 0; cam[-mh:, :] = 0
+        cam[:, :mw] = 0; cam[:, -mw:] = 0
+
         cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
         cam = np.power(cam, 2.0)
-        normal_map = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
-
-        return normal_map
+        return (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)

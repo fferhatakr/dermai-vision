@@ -4,8 +4,6 @@ import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
 from torch.utils.data import DataLoader, Subset
 from torchvision import datasets
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 import sys
 import os
 import seaborn as sns
@@ -13,38 +11,23 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
 from tqdm import tqdm
 import torch.nn.functional as F
+import hydra
+from omegaconf import DictConfig
 
 sys.path.append(os.getcwd())
-from engine.trainer_core import DermatologLightning
-from src.dataloader.image_dataset import val_album, AlbumentationsDataset
+from src.engine.trainer_core import DermatologLightning
+from src.dataloader.image_dataset import get_album_transform, get_tta_transforms, AlbumentationsDataset
 
-CSV_PATH = "data/processed/full_metadata.csv"
-DATA_PATH = "data/processed/full_dataset"
-MODEL_PATH = "models/vision/midas_model.ckpt"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MEL_CLASS_IDX = 0
-USE_TTA = True
 
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
-
-tta_transforms = [
-    A.Compose([A.Resize(300,300), A.Normalize(mean=mean,std=std), ToTensorV2()]),
-    A.Compose([A.Resize(300,300), A.HorizontalFlip(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
-    A.Compose([A.Resize(300,300), A.VerticalFlip(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
-    A.Compose([A.Resize(300,300), A.RandomRotate90(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
-    A.Compose([A.Resize(300,300), A.Transpose(p=1.0), A.Normalize(mean=mean,std=std), ToTensorV2()]),
-]
-
-
-def evaluate_with_tta(model, val_indices, data_path, device):
+def evaluate_with_tta(model, val_indices, data_path, device, tta_transforms,batch_size, num_workers):
     all_probs = []
     all_true = []
 
     for t_idx, t in enumerate(tta_transforms):
         dataset = AlbumentationsDataset(data_path, album_transform=t)
         val_sub = Subset(dataset, val_indices)
-        loader = DataLoader(val_sub, batch_size=16, shuffle=False, num_workers=0)
+        loader = DataLoader(val_sub, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
         fold_probs = []
         fold_true = []
@@ -67,10 +50,10 @@ def evaluate_with_tta(model, val_indices, data_path, device):
     return avg_probs, all_true
 
 
-def evaluate_standard(model, val_indices, data_path, device):
+def evaluate_standard(model, val_indices, data_path, device, val_album, batch_size, num_workers):
     dataset = AlbumentationsDataset(data_path, album_transform=val_album)
     val_sub = Subset(dataset, val_indices)
-    loader = DataLoader(val_sub, batch_size=16, shuffle=False, num_workers=0)
+    loader = DataLoader(val_sub, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     all_probs = []
     all_true = []
@@ -86,8 +69,8 @@ def evaluate_standard(model, val_indices, data_path, device):
     return np.array(all_probs), np.array(all_true)
 
 
-def find_optimal_threshold(all_probs, all_true, preds_standard):
-    mel_probs = all_probs[:, MEL_CLASS_IDX]
+def find_optimal_threshold(all_probs, all_true, preds_standard, mel_class_idx, target_recall):
+    mel_probs = all_probs[:, mel_class_idx]
     thresholds = np.arange(0.05, 0.50, 0.01)
 
     best_threshold = 0.25
@@ -100,11 +83,11 @@ def find_optimal_threshold(all_probs, all_true, preds_standard):
 
     for thresh in thresholds:
         preds_thresh = preds_standard.copy()
-        preds_thresh[mel_probs >= thresh] = MEL_CLASS_IDX
+        preds_thresh[mel_probs >= thresh] = mel_class_idx
 
-        tp = np.sum((preds_thresh == MEL_CLASS_IDX) & (all_true == MEL_CLASS_IDX))
-        fp = np.sum((preds_thresh == MEL_CLASS_IDX) & (all_true != MEL_CLASS_IDX))
-        fn = np.sum((preds_thresh != MEL_CLASS_IDX) & (all_true == MEL_CLASS_IDX))
+        tp = np.sum((preds_thresh == mel_class_idx) & (all_true == mel_class_idx))
+        fp = np.sum((preds_thresh == mel_class_idx) & (all_true != mel_class_idx))
+        fn = np.sum((preds_thresh != mel_class_idx) & (all_true == mel_class_idx))
 
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
@@ -119,9 +102,27 @@ def find_optimal_threshold(all_probs, all_true, preds_standard):
 
     return best_threshold, best_recall, best_f1
 
+@hydra.main(version_base=None, config_path="configs", config_name="config")
+def main(cfg: DictConfig):
+    csv_path = cfg.paths.csv_path
+    data_path = cfg.paths.data_path
+    model_path = cfg.train.fine_tune_checkpoint
 
-def main():
-    df = pd.read_csv(CSV_PATH)
+    use_tta = cfg.inference.tta_enabled
+    mel_class_idx = cfg.inference.mel_class_idx
+    batch_size = cfg.train.batch_size
+    num_workers = cfg.train.num_workers
+    image_size = cfg.model.image_size
+    mean = cfg.model.mean
+    std = cfg.model.std
+    target_recall = cfg.inference.target_recall
+    k_folds = cfg.train.k_folds
+    random_seed = cfg.train.random_seed
+
+    _, val_album = get_album_transform(image_size, mean, std)
+    tta_transforms = get_tta_transforms(image_size, mean, std)
+
+    df = pd.read_csv(csv_path)
    
     df_nv = df[df['targets'] == 1]
     df_others = df[df['targets'] != 1]
@@ -132,7 +133,7 @@ def main():
     df['lesion_id'] = df['lesion_id'].fillna(df['image'])
     df.set_index('image', inplace=True)
 
-    full_dataset = datasets.ImageFolder(DATA_PATH)
+    full_dataset = datasets.ImageFolder(data_path)
     clean_file_names = []
     for f in full_dataset.imgs:
         raw_name = os.path.splitext(os.path.basename(f[0]))[0]
@@ -156,38 +157,36 @@ def main():
     sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
 
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(np.zeros(len(valid_targets)), valid_targets, groups=valid_groups)):
-        if fold > 0:
-            break
+        print(f"\nEvaluating Fold {fold+1}")
 
         real_val_indices = valid_imgfolder_indices[val_idx].tolist()
 
-        print(f"Model loading: {MODEL_PATH}")
-        model = DermatologLightning.load_from_checkpoint(MODEL_PATH, strict=False)
+        print(f"Model loading: {model_path}")
+        model = DermatologLightning.load_from_checkpoint(model_path, strict=False)
         model.to(DEVICE)
         model.eval()
 
-        if USE_TTA:
+        if use_tta:
             print(f"\nEvaluation with TTA ({len(tta_transforms)}).")
-            all_probs, all_true = evaluate_with_tta(model, real_val_indices, DATA_PATH, DEVICE)
+            all_probs, all_true = evaluate_with_tta(model, real_val_indices, data_path, DEVICE)
         else:
             print("\nStandard Evaluation")
-            all_probs, all_true = evaluate_standard(model, real_val_indices, DATA_PATH, DEVICE)
+            all_probs, all_true = evaluate_standard(model, real_val_indices, data_path, DEVICE)
 
         preds_standard = np.argmax(all_probs, axis=1)
 
-        print("\n" + "=" * 60)
-        mode = "TTA" if USE_TTA else "STANDARD"
+        mode = "TTA" if use_tta else "STANDARD"
         print(f"{mode} EVALUATION")
-        print("=" * 60)
+   
         print(classification_report(all_true, preds_standard, target_names=full_dataset.classes))
 
         best_threshold, best_recall, best_f1 = find_optimal_threshold(all_probs, all_true, preds_standard)
         print(f"\nOptimal MEL threshold: {best_threshold:.2f}")
         print(f"At this threshold, recall: {best_recall:.1%}, F1: {best_f1:.3f}")
 
-        mel_probs = all_probs[:, MEL_CLASS_IDX]
+        mel_probs = all_probs[:, mel_class_idx]
         preds_optimized = preds_standard.copy()
-        preds_optimized[mel_probs >= best_threshold] = MEL_CLASS_IDX
+        preds_optimized[mel_probs >= best_threshold] = mel_class_idx
 
         print(f"\nTHRESHOLD ({best_threshold:.2f}):")
         print(classification_report(all_true, preds_optimized, target_names=full_dataset.classes))
