@@ -1,0 +1,25 @@
+train:
+  batch_size: 16
+  epochs: 25
+  learning_rate: 1e-4
+  weight_decay: 1e-4
+  k_folds: 5
+  num_workers: 4
+  accumulate_grad_batches: 4
+  early_stop_patience: 7
+  label_smoothing: 0.1
+  focal_gamma: 2.0
+  random_seed: 42
+
+  mode: "finetune"
+  derm12345_train: "data/derm12345/train"
+  derm12345_val: "data/derm12345/val"
+  fine_tune_checkpoint: "models/vision/midas_model.ckpt"
+  finetune_lr: 1e-5
+  finetune_batch: 8
+  fine_tune_accum: 8
+  finetune_epochs: 15
+
+  experiment_name: "Midas_Model"
+  class_multipliers_isic: [4.0, 0.8, 1.5, 2.0, 1.2, 2.5, 2.0, 2.5]
+  class_multipliers_finetune: [4.0, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 2.5]

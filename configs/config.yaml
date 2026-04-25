@@ -1,0 +1,7 @@
+defaults:
+  - paths
+  - model
+  - train
+  - inference
+  - meta
+  - _self_

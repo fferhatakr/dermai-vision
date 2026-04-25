@@ -91,7 +91,7 @@ def benchmark_speed(pytorch_model , dummy_input , onnx_path,n_runs=100):
     print(f"ONNX Runtime CPU: {onnx_time:.2f} ms/image")
     print(f"Acceleration: {pytorch_time / onnx_time:.2f}x")
 
-@hydra.main(version_base=None, config_path= "configs", config_name="config")
+@hydra.main(version_base=None, config_path= "../../configs", config_name="config")
 def main(cfg: DictConfig):
 
     ckpt_path = cfg.paths.checkpoint_dir

@@ -1,0 +1,20 @@
+paths:
+  data_path: "data/processed/full_dataset"
+  csv_path: "data/processed/full_metadata.csv"
+  raw_data_path: "data/raw/all_data"
+  gt_csv_path: "data/raw/ISIC_2019_Training_GroundTruth.csv"
+  meta_csv_path: "data/raw/ISIC_2019_Training_Metadata.csv"
+
+  onnx_path: "experiments/models/onnx_model/midas_onnx"
+
+  checkpoint_dir: "experiments/models/vision/midas_model.ckpt"
+  yolo_path: "experiments/models/detector/best.pt"
+  xgb_model_path: "experiments/models/xgb_meta_learner.json"
+  xgb_feature_path: "experiments/models/xgb_features.pkl"
+  kfold_models_dir: "experiments/models/kfold_models/"
+  finetune_save_dir: "experiments/models/vision/"
+  finetune_save_name: "DermScan_finetune_derm12345"
+
+  le_sex_path: "experiments/models/xgb_metalearner/le_sex.pkl"
+  le_site_path: "experiments/models/xgb_metalearner/le_site.pkl"
+  cm_plot_path: "experiments/models/xgb_metalearner/meta_learner_cm.png"

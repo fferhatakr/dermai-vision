@@ -1,0 +1,10 @@
+inference:
+  mel_threshold: 0.11
+  tta_enabled: true
+  mel_class_idx: 0
+
+  yolo_conf: 0.25
+  yolo_max_box_ratio: 0.6
+  center_crop_margin: 0.20
+  cnn_visual_alert_threshold: 0.40
+  target_recall: 0.85

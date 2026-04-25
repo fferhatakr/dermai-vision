@@ -14,15 +14,18 @@ from omegaconf import DictConfig
 
 sys.path.append(os.getcwd())
 from src.engine.trainer_core import DermatologLightning
-from src.dataloader.image_dataset import val_album , AlbumentationsDataset
+from src.dataloader.image_dataset import get_album_transform, AlbumentationsDataset
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="config")
+@hydra.main(version_base=None, config_path="../../configs", config_name="config")
 def main(cfg: DictConfig):
-    data_dir = cfg.paths.data_path
-    csv_path = cfg.meta.meta_csv_path
+
+    data_dir = cfg.meta.oof_image_dir        
+    csv_path = cfg.meta.oof_csv_path         
+    group_col = cfg.meta.oof_group_col      
+    
     k_folds = cfg.meta.meta_folds
     random_seed = cfg.train.random_seed
     model_path = cfg.meta.oof_model_path
@@ -33,7 +36,19 @@ def main(cfg: DictConfig):
     strip_suffix = cfg.meta.oof_strip_suffix
     image_col = cfg.meta.oof_image_col
 
-    group_col = 'lesion_id'
+    image_size = cfg.model.image_size
+    mean = cfg.model.mean
+    std = cfg.model.std
+    label_col = cfg.meta.oof_label_col
+    
+    _, val_album = get_album_transform(image_size, mean, std)
+    
+    df = pd.read_csv(csv_path)
+    df[image_col] = df[image_col].str.replace(strip_suffix, '')
+    df[group_col] = df[group_col].fillna(df[image_col])
+    df.set_index(image_col, inplace=True)
+
+    group_col = cfg.meta.oof_group_col
     df = pd.read_csv(csv_path)
     df[image_col] = df[image_col].str.replace(strip_suffix, '')
     df[group_col] = df[group_col].fillna(df[image_col])
@@ -54,7 +69,7 @@ def main(cfg: DictConfig):
     for img_idx, name in enumerate(clean_file_names):
         if name in df.index:
             valid_imgfolder_indices.append(img_idx)
-            valid_targets.append(df.loc[name, 'targets'])
+            valid_targets.append(df.loc[name, label_col])
             valid_groups.append(df.loc[name, group_col])
             valid_image_ids.append(name)
 
@@ -81,7 +96,17 @@ def main(cfg: DictConfig):
             continue
 
         print(f"\nProcessing Fold {fold+1}")
-        model = DermatologLightning.load_from_checkpoint(model_path, strict=False)
+        model = DermatologLightning.load_from_checkpoint(
+            model_path, 
+            strict=False,
+            num_classes=8,                 
+            backbone=cfg.model.backbone,   
+            lr=0.001,                      
+            max_epochs=10,                 
+            weight_decay=0.01,             
+            focal_gamma=2.0,              
+            warmup_epochs=0                
+        )
         model.to(DEVICE)
         model.eval()
 
@@ -112,11 +137,6 @@ def main(cfg: DictConfig):
     big_df = pd.read_csv(csv_path)
     df_final = pd.merge(df_preds, big_df, on=image_col)
 
-
-    mean_age = df_final['age_approx'].median()
-    df_final['age_approx'] = df_final['age_approx'].fillna(mean_age)
-    df_final['sex'] = df_final['sex'].fillna('unknown')
-    df_final['anatom_site_general'] = df_final['anatom_site_general'].fillna('unknown')
     df_final.to_csv(output_path, index=False)
     print(f"\nSUCCESS: OOF Meta-Dataset created at {output_path}")
 
