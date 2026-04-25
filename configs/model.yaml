@@ -1,0 +1,17 @@
+model:
+  backbone: "efficientnet_b3"
+  num_classes: 8
+  image_size: 300
+  classes:
+    - "0_mel"
+    - "1_nv"
+    - "2_bcc"
+    - "3_ak"
+    - "4_bkl"
+    - "5_df"
+    - "6_vasc"
+    - "7_scc"
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  malignant_indices: [0, 2, 3, 7]
+  benign_indices: [1, 4, 5, 6]

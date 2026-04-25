@@ -21,7 +21,7 @@ from src.dataloader.image_dataset import AlbumentationsDataset, Derm12345Dataset
 warnings.filterwarnings("ignore")
 torch.set_float32_matmul_precision('medium')
 
-@hydra.main(version_base=None, config_path="configs", config_name="config")
+@hydra.main(version_base=None, config_path="../../configs", config_name="config")
 def main(cfg: DictConfig):
 
     train_album, val_album = get_album_transform(
