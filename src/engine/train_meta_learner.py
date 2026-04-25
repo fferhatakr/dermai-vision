@@ -5,16 +5,18 @@ from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 from sklearn.preprocessing import LabelEncoder
 import joblib
-import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-os.makedirs("models/colab_new", exist_ok=True)
-CSV_PATH = "data/processed/oof_meta_dataset.csv"
-K_FOLDS = 5
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-def main():
-    df = pd.read_csv(CSV_PATH)
+
+@hydra.main(version_base=None, config_path="configs", config_name="config")
+def main(cfg: DictConfig):
+
+    os.makedirs(cfg.meta.meta_model_dir, exist_ok=True)
+    df = pd.read_csv(cfg.meta_csv_path)
 
     if 'targets_x' in df.columns:
         df.rename(columns={'targets_x': 'targets'}, inplace=True)
@@ -29,11 +31,12 @@ def main():
     df['site_encoded'] = le_site.fit_transform(df['anatom_site_general'].astype(str))
 
 
-    joblib.dump(le_sex, "models/detector/le_sex.pkl")
-    joblib.dump(le_site, "models/detector/le_site.pkl")
+    joblib.dump(le_sex, cfg.paths.le_sex_path)
+    joblib.dump(le_site, cfg.paths.le_site_path)
 
 
-    cnn_features = ['0_mel', '1_nv', '2_bcc', '3_ak', '4_bkl', '5_df', '6_vasc', '7_scc']
+
+    cnn_features = cfg.meta.cnn_features
     clinical_features = ['age_approx', 'sex_encoded', 'site_encoded']
     
     feature_cols = cnn_features + clinical_features
@@ -43,21 +46,11 @@ def main():
 
 
    
-    xgb_params = {
-        'objective': 'multi:softprob',
-        'num_class': 8,
-        'eval_metric': 'mlogloss',
-        'max_depth': 4,
-        'learning_rate': 0.05,
-        'subsample': 0.8,
-        'colsample_bytree': 0.8,
-        'n_estimators': 150,
-        'random_state': 42
-    }
+    xgb_params = OmegaConf.to_container(cfg.meta.xgb_params, resolve=True)
 
-    sgkf = StratifiedGroupKFold(n_splits=K_FOLDS, shuffle=True, random_state=42)
+    sgkf = StratifiedGroupKFold(n_splits=cfg.meta.meta_folds, shuffle=True, random_state=cfg.train.random_seed)
     
-    oof_preds = np.zeros((len(df), 8))
+    oof_preds = np.zeros((len(df), cfg.model.num_classes))
     fold_scores = []
     best_fold_score = -1
     for fold, (train_idx, val_idx) in enumerate(sgkf.split(X, y, groups=groups)):
@@ -79,14 +72,14 @@ def main():
 
         val_preds_classes = np.argmax(val_preds, axis=1)
 
-        mel_f1 = f1_score(y_val, val_preds_classes, labels=[0], average='macro')
+        mel_f1 = f1_score(y_val, val_preds_classes, labels=[cfg.inference.mel_class_idx], average='macro')
         fold_scores.append(mel_f1)
         print(f"Fold {fold + 1} Melanoma F1-Score: {mel_f1:.4f}")
 
         if  mel_f1 > best_fold_score:
             best_fold_score = mel_f1
-            model.save_model("models/xgb_metalearner/xgb_meta_learner.json")
-            joblib.dump(feature_cols, "models/xgb_metalearner/xgb_features.pkl")
+            model.save_model(cfg.meta.meta_model_path)
+            joblib.dump(feature_cols, cfg.meta.meta_feature_path)
             print(f"New best model saved at fold {fold+1} (MEL F1: {mel_f1:.4f})")
 
     print("META-LEARNER FINAL OOF PERFORMANCE")
@@ -109,7 +102,7 @@ def main():
     plt.xlabel('Meta-Learner Prediction', fontsize=12)
     
     plt.tight_layout()
-    cm_filename = "models/colab_new/meta_learner_cm.png"
+    cm_filename = cfg.paths.cm_plot_path
     plt.savefig(cm_filename, dpi=150)
     print(f"Saved Confusion Matrix visualization to: {cm_filename}")
 
