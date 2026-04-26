@@ -49,13 +49,13 @@ graph LR
 
 <div align="center">
   <h3>Patient data and lesion input</h3>
-  <a href="assets/ui_input.jpg"><img src="assets/ui_input.jpg" width="800"></a>
+  <a href="assets/ui_input.jpg"><img src="assets/ui/ui_input.jpg" width="800"></a>
   <br><br>
   <h3>Hybrid analysis and safety conflict panel</h3>
-  <a href="assets/ui_analysis.jpg"><img src="assets/ui_analysis.jpg" width="800"></a>
+  <a href="assets/ui_analysis.jpg"><img src="assets/ui/ui_analysis.jpg" width="800"></a>
   <br><br>
   <h3>Explainable AI (Grad-CAM heatmap)</h3>
-  <a href="assets/ui_heatmap.jpg"><img src="assets/ui_heatmap.jpg" width="800"></a>
+  <a href="assets/ui_heatmap.jpg"><img src="assets/ui/ui_heatmap.jpg" width="800"></a>
 </div>
 
 **Key UI features:**
