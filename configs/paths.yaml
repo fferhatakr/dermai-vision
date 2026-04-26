@@ -9,12 +9,12 @@ paths:
 
   checkpoint_dir: "experiments/models/vision/midas_model.ckpt"
   yolo_path: "experiments/models/detector/best.pt"
-  xgb_model_path: "experiments/models/xgb_meta_learner.json"
-  xgb_feature_path: "experiments/models/xgb_features.pkl"
+  xgb_model_path: "experiments/models/meta/xgb_meta_learner.json"
+  xgb_feature_path: "experiments/models/meta/xgb_features.pkl"
   kfold_models_dir: "experiments/models/kfold_models/"
   finetune_save_dir: "experiments/models/vision/"
   finetune_save_name: "DermScan_finetune_derm12345"
 
-  le_sex_path: "experiments/models/xgb_metalearner/le_sex.pkl"
-  le_site_path: "experiments/models/xgb_metalearner/le_site.pkl"
+  le_sex_path: "experiments/models/meta/le_sex.pkl"
+  le_site_path: "experiments/models/meta/le_site.pkl"
   cm_plot_path: "experiments/models/xgb_metalearner/meta_learner_cm.png"

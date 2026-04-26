@@ -52,3 +52,5 @@ pytest-mock
 
 #--- LLM---
 anthropic
+
+hydra-core

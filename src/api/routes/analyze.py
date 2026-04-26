@@ -1,24 +1,28 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from src.api.schemas import AnalysisResponse
 from src.api.auth import get_current_user
-from src.api.models import CLASSES
-from src.api.inference import run_hybrid_inference, apply_vignette , run_quick_scan, run_standard_analysis
+from src.api.inference import run_hybrid_inference, apply_vignette, run_quick_scan, run_standard_analysis
 from src.api.gradcam import generate_heatmap
 from src.api.database import get_db
 import torch
 import torch.nn.functional as F
 import numpy as np
-import pandas as pd
 from PIL import Image
 import io
 import src.api.models as ai_models
 from src.api import db_models
 from sqlalchemy.orm import Session
 from src.api.db_models import InferenceLog
+import hydra
+from hydra import compose, initialize
 
 router = APIRouter(tags=["analysis"])
-
-
+try:
+    initialize(config_path="../../../configs", version_base=None, job_name="analyze_api")
+except:
+    pass
+cfg = compose(config_name="config")
+CLASSES = ['0_mel', '1_nv', '2_bcc', '3_ak', '4_bkl', '5_df', '6_vasc', '7_scc']
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_image(
     file: UploadFile = File(...),
@@ -83,10 +87,10 @@ async def analyze_image(
 
 
 
-
+    db_user = db.query(db_models.User).filter(db_models.User.email == current_user).first()
     if analysis_mode == "quick":
 
-        result = run_quick_scan(processed_image)
+        result = run_quick_scan(processed_image, cfg)
 
         is_risky = result["is_risky"]
         final_diagnosis = result["top_class"]
@@ -120,10 +124,12 @@ async def analyze_image(
             }
         }
     elif analysis_mode == "standard":
-        result = run_standard_analysis(processed_image, age, sex, anatom_site)
+        result = run_standard_analysis(processed_image, age, sex, anatom_site, cfg)
         final_probs = list(result["all_probabilities"].values())
         top_idx = int(np.argmax(final_probs))
-        is_risky = top_idx in [0, 2, 3, 7]
+
+        malignant_indices = [0, 2, 3, 7]
+        is_risky = top_idx in malignant_indices
         confidence = result["confidence"]
 
         db_user = db.query(db_models.User).filter(
@@ -158,10 +164,11 @@ async def analyze_image(
 
     
         inference_result = run_hybrid_inference(
-            processed_image, 
-            age, 
-            sex, 
-            anatom_site, 
+            processed_image,
+            age,
+            sex,
+            anatom_site,
+            cfg,
             ai_models.lightning_model
         )
 
@@ -172,11 +179,10 @@ async def analyze_image(
         top_idx = int(np.argmax(final_probs))
         cnn_top_idx = int(np.argmax(cnn_probs))
         cnn_max_conf = float(cnn_probs[cnn_top_idx])
-        prob_mel = float(inference_result["all_probabilities"]["MEL"])
+        prob_mel = float(inference_result["all_probabilities"]["0_mel"])
 
-        final_diagnosis = CLASSES[top_idx].upper()
-
-    
+        class_names_upper = [c.upper() for c in cfg.model.classes]
+        final_diagnosis = class_names_upper[top_idx]
         malignant_indices = [0, 2, 3, 7]
         
         if top_idx in malignant_indices:

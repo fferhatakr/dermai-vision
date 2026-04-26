@@ -6,55 +6,47 @@ import xgboost as xgb
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-from src.api import models as ai_models
+import hydra
+from omegaconf import DictConfig
 import src.api.models as ai_models
-from src.api import models as ai_models
-import src.api.models as ai_models
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-XGB_MODEL_PATH = "experiments/models/meta/xgb_meta_learner.json"
-XGB_FEATURES_PATH = "experiments/models/meta/xgb_features.pkl"
-LE_SEX_PATH = "experiments/models/meta/le_sex.pkl"
-LE_SITE_PATH = "experiments/models/meta/le_site.pkl"
+@hydra.main(version_base=None, config_path="../../configs", config_name="config")
+def main(cfg: DictConfig):
+    print(f"Inference module ready with {cfg.model.backbone}.")
 
+def encode_clinical_data(age, sex, site):
+    try:
+        sex_encoded = ai_models.le_sex.transform([str(sex).lower()])[0]
+    except:
+        sex_encoded = ai_models.le_sex.transform(['unknown'])[0]
 
-meta_learner = xgb.XGBClassifier()
-meta_learner.load_model(XGB_MODEL_PATH)
-feature_names = joblib.load(XGB_FEATURES_PATH)
-le_sex = joblib.load(LE_SEX_PATH)
-le_site = joblib.load(LE_SITE_PATH)
+    try:
+        site_encoded = ai_models.le_site.transform([str(site).lower()])[0]
+    except:
+        site_encoded = ai_models.le_site.transform(['unknown'])[0]
+    
+    return np.array([float(age), float(sex_encoded), float(site_encoded)])
 
-def run_hybrid_inference(image_pil, age, sex, site, vision_model):
-
+def run_hybrid_inference(image_pil, age, sex, site, cfg: DictConfig, vision_model):
     vision_model.eval()
     
-
-    tta_batch = apply_tta(image_pil) 
+    tta_batch = apply_tta(image_pil, cfg) 
     with torch.no_grad():
         device = next(vision_model.parameters()).device
         tta_batch = tta_batch.to(device)
         logits = vision_model(tta_batch)
         probs = F.softmax(logits, dim=1).cpu().numpy()
         avg_cnn_probs = np.mean(probs, axis=0)
-
-    try:
-        sex_encoded = le_sex.transform([str(sex).lower()])[0]
-    except:
-        sex_encoded = le_sex.transform(['unknown'])[0]
         
-    try:
-        site_encoded = le_site.transform([str(site).lower()])[0]
-    except:
-        site_encoded = le_site.transform(['unknown'])[0]
-    clinical_data = np.array([age, sex_encoded, site_encoded])
+    clinical_data = encode_clinical_data(age, sex, site)
     final_feature_vector = np.concatenate([avg_cnn_probs, clinical_data]).reshape(1, -1)
     
+    final_probs = ai_models.xgb_model.predict_proba(final_feature_vector)[0]
+    final_class = int(np.argmax(final_probs))
+    class_names = cfg.model.classes
 
-    final_probs = meta_learner.predict_proba(final_feature_vector)[0]
-    final_class = np.argmax(final_probs)
-    
-    class_names = ['MEL', 'NV', 'BCC', 'AK', 'BKL', 'DF', 'VASC', 'SCC']
-    
     return {
         "prediction": class_names[final_class],
         "confidence": float(final_probs[final_class]),
@@ -62,20 +54,23 @@ def run_hybrid_inference(image_pil, age, sex, site, vision_model):
         "cnn_contribution": dict(zip(class_names, avg_cnn_probs.tolist())) 
     }
 
+def apply_tta(image, cfg:DictConfig):
+    norm_mean = cfg.model.mean
+    norm_std = cfg.model.std
+    img_sz = cfg.model.image_size
 
-def apply_tta(image):
     base_transform = transforms.Compose([
-        transforms.Resize((300, 300)),
+        transforms.Resize((img_sz,img_sz)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=norm_mean, std=norm_std)
     ])
     tta_transform = transforms.Compose([
-        transforms.Resize((300, 300)),
+        transforms.Resize((img_sz,img_sz)),
         transforms.RandomHorizontalFlip(p=1.0),
         transforms.RandomRotation(degrees=15),
         transforms.ColorJitter(brightness=0.1),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=norm_mean, std=norm_std)
     ])
     images = [base_transform(image)]
     for _ in range(4): 
@@ -95,11 +90,13 @@ def apply_vignette(image_pil, sigma=180):
     vignette_img = (img_cv * mask_3ch).astype(np.uint8)
     return Image.fromarray(cv2.cvtColor(vignette_img, cv2.COLOR_BGR2RGB))
 
-def run_quick_scan(image_pil):
+def run_quick_scan(image_pil,cfg: DictConfig):
+    img_sz = cfg.model.image_size
+
     transform = transforms.Compose([
-        transforms.Resize((300,300)),
+        transforms.Resize((img_sz, img_sz)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=cfg.model.mean, std=cfg.model.std)
     ])
 
     img_tensor = transform(image_pil).unsqueeze(0).numpy().astype(np.float32)
@@ -109,16 +106,14 @@ def run_quick_scan(image_pil):
 
     probs = torch.softmax(torch.tensor(logits), dim=1).numpy()[0]
     
-
     MALIGNANT_INDICES = [0, 2, 3, 7]
     top_class = int(np.argmax(probs))
     is_risky = top_class in MALIGNANT_INDICES
 
-
     confidence = float(probs[top_class])
     low_confidence = confidence < 0.35
 
-    class_names = ['MEL', 'NV', 'BCC', 'AK', 'BKL', 'DF', 'VASC', 'SCC']
+    class_names = cfg.model.classes
 
     return {
         "mode": "quick_scan",
@@ -129,38 +124,27 @@ def run_quick_scan(image_pil):
         "message": "RISKY — Expert assessment recommendations" if is_risky else "Low Risk"
     }
 
-
-def run_standard_analysis(image_pil, age, sex, site):
-
+def run_standard_analysis(image_pil, age, sex, site, cfg: DictConfig):
+    img_sz = cfg.model.image_size
     transform = transforms.Compose([
-        transforms.Resize((300, 300)),
+        transforms.Resize((img_sz, img_sz)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=cfg.model.mean, std=cfg.model.std)
     ])
 
     img_tensor = transform(image_pil).unsqueeze(0).numpy().astype(np.float32)
 
     input_name = ai_models.onnx_session.get_inputs()[0].name
     logits = ai_models.onnx_session.run(["logits"], {input_name: img_tensor})[0]
-    cnn_probs = torch.softmax(torch.tensor(logits), dim = 1).numpy()[0]
+    cnn_probs = torch.softmax(torch.tensor(logits), dim=1).numpy()[0]
 
-    try:
-        sex_encoded = le_sex.transform([str(sex).lower()])[0]
-    except:
-        sex_encoded = le_sex.transform(['unknown'])[0]
-
-    try:
-        site_encoded = le_site.transform([str(site).lower()])[0]
-    except:
-        site_encoded = le_site.transform(['unknown'])[0]
-
-    clinical_data = np.array([age,sex_encoded,site_encoded])
+    clinical_data = encode_clinical_data(age, sex, site)
     feature_vector = np.concatenate([cnn_probs, clinical_data]).reshape(1, -1)
 
-    final_probs = meta_learner.predict_proba(feature_vector)[0]
+    final_probs = ai_models.xgb_model.predict_proba(feature_vector)[0]
     final_class = int(np.argmax(final_probs))
 
-    class_names = ['MEL', 'NV', 'BCC', 'AK', 'BKL', 'DF', 'VASC', 'SCC']
+    class_names = cfg.model.classes
 
     confidence = float(final_probs[final_class])
     low_confidence = confidence < 0.35
