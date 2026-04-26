@@ -34,8 +34,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ui
-    container_name: derma_ui
-   
+    container_name: derma_ui  
+    ports:
+      - "8501:8501"
     environment:
       API_URL: http://api:8000   
     depends_on:
