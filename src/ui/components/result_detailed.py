@@ -2,6 +2,57 @@ import streamlit as st
 import cv2
 import numpy as np
 import base64
+import requests
+
+
+def render_feedback_form(inference_id: int):
+    st.markdown('<hr class="ds-divider">', unsafe_allow_html=True)
+    st.markdown('<p class="ds-section-label">Clinical Feedback (Active Learning)</p>', unsafe_allow_html=True)
+    st.info("Your feedback helps retrain the AI model for better accuracy.")
+
+    with st.form(key=f"feedback_form_{inference_id}"):
+        is_correct = st.radio(
+            "Do you agree with the model's primary diagnosis?",
+            ("Yes", "No")
+        )
+        
+        corrected_diagnosis = None
+        if is_correct == "No":
+           
+            corrected_diagnosis = st.selectbox(
+                "Select the correct diagnosis:",
+                ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"] 
+            )
+            
+        doctor_notes = st.text_area("Additional Clinical Notes (Optional):")
+        
+        submit_button = st.form_submit_button(label="Submit Feedback")
+        
+        if submit_button:
+            feedback_data = {
+                "inference_id": inference_id,
+                "is_correct": True if is_correct == "Yes" else False,
+                "corrected_diagnosis": corrected_diagnosis,
+                "doctor_notes": doctor_notes
+            }
+            
+            try:
+                
+                response = requests.post("http://127.0.0.1:8000/feedback", json=feedback_data)
+                
+                if response.status_code == 201:
+                    st.success("Feedback submitted successfully. Thank you!")
+                else:
+                    st.error(f"Failed to submit. Error: {response.text}")
+            except Exception as e:
+                st.error(f"API Connection error: {e}")
+
+
+
+
+
+
+
 
 
 def show_detailed_result(result: dict, image, diag: str, selected_mode: str, debug:dict,):
@@ -81,4 +132,8 @@ def show_detailed_result(result: dict, image, diag: str, selected_mode: str, deb
                 )
                 st.markdown(clinical_report) 
                 st.markdown('</div>', unsafe_allow_html=True)
+
+            inference_id = result.get("inference_id")
+            if inference_id is not None:
+                render_feedback_form(inference_id)
 

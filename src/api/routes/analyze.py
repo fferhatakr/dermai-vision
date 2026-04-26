@@ -14,6 +14,7 @@ import io
 import src.api.models as ai_models
 from src.api import db_models
 from sqlalchemy.orm import Session
+from src.api.db_models import InferenceLog
 
 router = APIRouter(tags=["analysis"])
 
@@ -30,6 +31,7 @@ async def analyze_image(
     db: Session = Depends(get_db),
     analysis_mode: str = Form(default="detailed")
 ):
+    
     existing_patient = db.query(db_models.Patient).filter(
         db_models.Patient.full_name == full_name
     ).first()
@@ -47,21 +49,18 @@ async def analyze_image(
         db.commit()
         db.refresh(patient)
 
+
     image_bytes = await file.read()
     original_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     cv_image = np.array(original_image)
     cv_image = cv_image[:, :, ::-1].copy()
-
     img_w, img_h = original_image.size
-
-    
     margin = 0.20
     center_crop = original_image.crop((
         int(img_w * margin), int(img_h * margin),
         int(img_w * (1 - margin)), int(img_h * (1 - margin))
     ))
 
-    
     results = ai_models.yolo_model.predict(cv_image, conf=0.25, verbose=False)
     cropped_image = center_crop  
 
@@ -80,8 +79,10 @@ async def analyze_image(
             break
     else:
         print("YOLO no detection — center crop fallback")
-
     processed_image = apply_vignette(cropped_image)
+
+
+
 
     if analysis_mode == "quick":
 
@@ -214,11 +215,26 @@ async def analyze_image(
             is_risky=is_risky
         )
         db.add(new_analysis)
+
+        mel_index = 0
+        new_log = InferenceLog(
+            patient_age=patient.age,
+            patient_sex = patient.sex,
+            anatomical_site = patient.anatom_site,
+
+            cnn_mel_prob=float(cnn_probs[mel_index]),
+            xgb_mel_prob=float(final_probs[mel_index]),
+            final_decision=final_diagnosis,
+            image_path=file.filename
+        )   
+        db.add(new_log)
         db.commit()
+        db.refresh(new_log)
 
 
 
         return {
+            "inference_id": new_log.id,
             "prediction": "Risky" if is_risky else "Benign",
             "diagnosis": CLASSES[top_idx].upper(),
             "confidence": float(final_probs[top_idx]),
